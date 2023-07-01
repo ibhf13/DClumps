@@ -57,7 +57,6 @@ function getMethodWithLeastParameters(
 }
 
 function createNewClass(
-  method: SmellyMethods,
   fileName: string,
   newClassName: string
 ): ClassDeclaration {
@@ -155,11 +154,7 @@ export function createNewClassesFromDataClumpsList(
       leastParameterMethod.classInfo.className
     );
 
-    const newClassDeclaration = createNewClass(
-      leastParameterMethod,
-      fileName,
-      newClassName
-    );
+    const newClassDeclaration = createNewClass(fileName, newClassName);
 
     defineClassVariables(leastParameterMethod, newClassDeclaration);
 
@@ -234,7 +229,6 @@ function replaceParameters(
 
 function updateReferences(
   method: MethodDeclaration,
-  newClassInfo: NewClassInfo,
   smellyMethod: SmellyMethods
 ) {
   let methodBody = method.getBodyText();
@@ -300,7 +294,7 @@ export function refactorInSameClass(
   const method = findMethodInAst(file, smellyMethod.methodInfo);
   if (method) {
     replaceParameters(method, newClassInfo, smellyMethod);
-    updateReferences(method, newClassInfo, smellyMethod);
+    updateReferences(method, smellyMethod);
     findAndReplaceMethodCalls(file, smellyMethod, newClassInfo);
   }
 
