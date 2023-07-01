@@ -1,0 +1,517 @@
+[
+  {
+    "smellyMethods": [
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod2",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "test1",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/TestCode.ts"
+        },
+        "callsList": {
+          "callsInSame": 1,
+          "callsGlob": []
+        },
+        "callsCount": 1
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod2",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Parameters2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/DistinctNamesTypes.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod1",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            },
+            {
+              "name": "paraNormal",
+              "type": "string"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Parametes1",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SimpleParameters.ts"
+        },
+        "callsList": {
+          "callsInSame": 1,
+          "callsGlob": []
+        },
+        "callsCount": 1
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod2",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Paramete2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SimpleParameters.ts"
+        },
+        "callsList": {
+          "callsInSame": 1,
+          "callsGlob": []
+        },
+        "callsCount": 1
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod1",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            },
+            {
+              "name": "paraNormal",
+              "type": "string"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "test2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/TestCode.ts"
+        },
+        "callsList": {
+          "callsInSame": 1,
+          "callsGlob": [
+            {
+              "classInfo": {
+                "className": "test1",
+                "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/TestCode.ts"
+              },
+              "callsGlobCount": 1
+            },
+            {
+              "classInfo": {
+                "className": "Paramete2",
+                "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SimpleParameters.ts"
+              },
+              "callsGlobCount": 1
+            }
+          ]
+        },
+        "callsCount": 3
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyMethod2",
+          "parameters": [
+            {
+              "name": "paraX",
+              "type": "number"
+            },
+            {
+              "name": "paraString",
+              "type": "string"
+            },
+            {
+              "name": "paraY",
+              "type": "number"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "test1",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/TestCode.ts"
+        },
+        "callsList": {
+          "callsInSame": 1,
+          "callsGlob": []
+        },
+        "callsCount": 1
+      }
+    ]
+  },
+  {
+    "smellyMethods": [
+      {
+        "methodInfo": {
+          "methodName": "notSmellyMethod",
+          "parameters": [
+            {
+              "name": "interX",
+              "type": "number"
+            },
+            {
+              "name": "interY",
+              "type": "number"
+            },
+            {
+              "name": "interString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Class2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/InterfaceNegative.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "aSmellyMethod1",
+          "parameters": [
+            {
+              "name": "interX",
+              "type": "number"
+            },
+            {
+              "name": "interY",
+              "type": "number"
+            },
+            {
+              "name": "interString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Class1",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/InterfacePositive.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "aSmellyMethod2",
+          "parameters": [
+            {
+              "name": "interX",
+              "type": "number"
+            },
+            {
+              "name": "interY",
+              "type": "number"
+            },
+            {
+              "name": "interString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Class2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/InterfacePositive.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "notSmellyMethod",
+          "parameters": [
+            {
+              "name": "interX",
+              "type": "number"
+            },
+            {
+              "name": "interY",
+              "type": "number"
+            },
+            {
+              "name": "interString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Class1",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/InterfaceNegative.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "notSmellyMethod",
+          "parameters": [
+            {
+              "name": "interX",
+              "type": "number"
+            },
+            {
+              "name": "interY",
+              "type": "number"
+            },
+            {
+              "name": "interString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Class2",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/InterfaceNegative.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      }
+    ]
+  },
+  {
+    "smellyMethods": [
+      {
+        "methodInfo": {
+          "methodName": "smellyChild",
+          "parameters": [
+            {
+              "name": "dup2",
+              "type": "number"
+            },
+            {
+              "name": "dup1",
+              "type": "number"
+            },
+            {
+              "name": "dup3",
+              "type": "number"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Child",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Polymorphism.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyParent",
+          "parameters": [
+            {
+              "name": "dup1",
+              "type": "number"
+            },
+            {
+              "name": "dup2",
+              "type": "number"
+            },
+            {
+              "name": "dup3",
+              "type": "number"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Polymorphism",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Polymorphism.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "smellyChild",
+          "parameters": [
+            {
+              "name": "dup2",
+              "type": "number"
+            },
+            {
+              "name": "dup1",
+              "type": "number"
+            },
+            {
+              "name": "dup3",
+              "type": "number"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "Child",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Polymorphism.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      }
+    ]
+  },
+  {
+    "smellyMethods": [
+      {
+        "methodInfo": {
+          "methodName": "anotherSmelly",
+          "parameters": [
+            {
+              "name": "paX",
+              "type": "number"
+            },
+            {
+              "name": "paY",
+              "type": "number"
+            },
+            {
+              "name": "paString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "SameClass",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SameClass.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "someSmellyMethod1",
+          "parameters": [
+            {
+              "name": "paX",
+              "type": "number"
+            },
+            {
+              "name": "paY",
+              "type": "number"
+            },
+            {
+              "name": "paString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "SameClass",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SameClass.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      },
+      {
+        "methodInfo": {
+          "methodName": "anotherSmelly",
+          "parameters": [
+            {
+              "name": "paX",
+              "type": "number"
+            },
+            {
+              "name": "paY",
+              "type": "number"
+            },
+            {
+              "name": "paString",
+              "type": "string"
+            }
+          ]
+        },
+        "classInfo": {
+          "className": "SameClass",
+          "filepath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/SameClass.ts"
+        },
+        "callsList": {
+          "callsInSame": 0,
+          "callsGlob": []
+        },
+        "callsCount": 0
+      }
+    ]
+  }
+]

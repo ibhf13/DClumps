@@ -1,0 +1,51 @@
+current issues:
+handling interfaces if the methode implement interfaces do somthing
+handling inheritance : Similar Methods in Parent/Child Classes: 
+If there are methods with similar parameters in parent and child classes (in case of inheritance), 
+the code should handle these cases correctly.
+
+
+please check my algorithm process first and then implement this in TS using ts-morph
+use function and the Principe DYR
+provide console.log to test and debug
+make comments that outline each step in the algorithm
+
+    Algorithm:
+
+    1. Scan the directory for Typescript (TS) files.
+        1.1. Only consider files with a `.ts` extension.
+        
+    2. make a function that provide a list of the files in the project named "projectFileList"
+       
+    3. Find smellyMethods in class method Parameters 
+            3.1. create 2 list smellymethodGroup and Data_Clumps_List and then visit the first file
+                3.1.1. check the first file in the projectFileList
+
+            3.2. check if the method has more than 2 parameters
+                
+                3.2.1. check if methode name and class name exist in Data_Clumps_List object "smellymethodGroup" if not go to next method
+                3.2.2. store the method name, parameterInfo{name, type , value?} , classInfo{filepath, className} as an array (set it as the anchor Method)
+                3.2.3. check if in smellymethodGroup (method name and Class name) existed if not then add to the smellymethodGroup
+        
+            3.3. check other methods 
+                3.3.1. call projectFileList and check ever method method in every class in every file
+                3.3.2. check if the method has more than 2 parameter
+                3.3.3. compare it with the anchor method parameters if they have the same name and then compare the types 
+                    notice the Prameters order can be different "check without order"
+                3.3.3. if 3 parameters names and types was matched 
+                    check if in smellymethodGroup (method name and Class name) existed if not then add to the smellymethodGroup
+                3.3.5. check the rest of the class methods and apply all steps of 3.3
+            
+            
+            3.4. check if other class in the same file if existed 
+                3.4.1 check if class has methods
+                3.4.2 apply all steps of 3.3
+
+            3.5. iterate through the rest of the projectFileList and apply all steps of 3.3
+            3.6. if smellymethodGroup has more than one element then
+                save smellymethodGroup as an object in the Data_Clumps_List and empty it
+            3.7. go to the next method in the file and set it to be the anchor and redo 3.2 to 3.6 
+            3.8. delete the file from projectFileList as checked and go to the next file 
+            3.9. redo 3.2 to 3.6 
+            3.10. repeat untill projectFileList is empty
+4. save the Data_Clumps_List as json file

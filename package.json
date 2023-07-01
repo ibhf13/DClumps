@@ -1,0 +1,31 @@
+{
+  "dependencies": {
+    "@babel/types": "^7.22.5",
+    "@types/lodash": "^4.14.195",
+    "@types/prettier": "^2.7.3",
+    "glob": "^10.2.7",
+    "prettier": "^2.8.8",
+    "xmlbuilder2": "^3.1.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.5",
+    "@babel/generator": "^7.22.5",
+    "@babel/parser": "^7.22.5",
+    "@babel/preset-env": "^7.22.5",
+    "@babel/preset-typescript": "^7.21.5",
+    "@babel/template": "^7.22.5",
+    "@babel/traverse": "^7.22.5",
+    "@types/babel__core": "^7.20.1",
+    "@types/babel__generator": "^7.6.4",
+    "@types/babel__traverse": "^7.20.1",
+    "@types/node": "^20.3.1",
+    "ts-morph": "^19.0.0",
+    "ts-node-dev": "^2.0.0"
+  },
+  "scripts": {
+    "start": "npm run start:extract",
+    "start:extract": "ts-node-dev --transpile-only --no-notify ./src/detectionDclumps.ts",
+    "main": "ts-node-dev --transpile-only --no-notify ./src/extractors/main.ts",
+    "func": "ts-node-dev --transpile-only --no-notify ./src/extractors/functionsDclumps.ts"
+  }
+}

@@ -1,0 +1,179 @@
+[
+  {
+    "functionName": "smellyFunctionDclumps",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "functionName": "smellyFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "functionName": "testFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      },
+      {
+        "name": "param4",
+        "type": "string[]"
+      },
+      {
+        "name": "param5",
+        "type": "Date"
+      }
+    ]
+  },
+  {
+    "functionName": "testFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      },
+      {
+        "name": "param4",
+        "type": "string[]"
+      },
+      {
+        "name": "param5",
+        "type": "Date"
+      }
+    ]
+  },
+  {
+    "functionName": "smellyFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "functionName": "smellyFunctionDclumps",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "functionName": "testFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      },
+      {
+        "name": "param4",
+        "type": "string[]"
+      },
+      {
+        "name": "param5",
+        "type": "Date"
+      }
+    ]
+  },
+  {
+    "functionName": "smellyFunctionDclumps",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  },
+  {
+    "functionName": "smellyFunction",
+    "parameters": [
+      {
+        "name": "param1",
+        "type": "string"
+      },
+      {
+        "name": "param2",
+        "type": "number"
+      },
+      {
+        "name": "param3",
+        "type": "boolean"
+      }
+    ]
+  }
+]

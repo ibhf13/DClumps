@@ -1,0 +1,316 @@
+[
+  {
+    "functionInfo": {
+      "functionName": "storeMethodInfo",
+      "parameters": [
+        {
+          "name": "method",
+          "type": "any"
+        },
+        {
+          "name": "clazz",
+          "type": "any"
+        },
+        {
+          "name": "filepath",
+          "type": "any"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/main.ts",
+    "callsList": {
+      "callsInSame": 3,
+      "callsGlob": []
+    },
+    "callsCount": 3
+  },
+  {
+    "functionInfo": {
+      "functionName": "compareWithClassesSameOrOtherFiles",
+      "parameters": [
+        {
+          "name": "method",
+          "type": "any"
+        },
+        {
+          "name": "clazz",
+          "type": "any"
+        },
+        {
+          "name": "filepath",
+          "type": "any"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/main.ts",
+    "callsList": {
+      "callsInSame": 2,
+      "callsGlob": []
+    },
+    "callsCount": 2
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunctionDclumps",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Dclumps.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/functionsSmells.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  },
+  {
+    "functionInfo": {
+      "functionName": "testFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        },
+        {
+          "name": "param4",
+          "type": "string[]"
+        },
+        {
+          "name": "param5",
+          "type": "Date"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functions.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": [
+        {
+          "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functioncallsfunction.ts",
+          "callsGlobCount": 1
+        }
+      ]
+    },
+    "callsCount": 5
+  },
+  {
+    "functionInfo": {
+      "functionName": "testFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        },
+        {
+          "name": "param4",
+          "type": "string[]"
+        },
+        {
+          "name": "param5",
+          "type": "Date"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functions.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": [
+        {
+          "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functioncallsfunction.ts",
+          "callsGlobCount": 1
+        }
+      ]
+    },
+    "callsCount": 5
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/functionsSmells.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunctionDclumps",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Dclumps.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  },
+  {
+    "functionInfo": {
+      "functionName": "testFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        },
+        {
+          "name": "param4",
+          "type": "string[]"
+        },
+        {
+          "name": "param5",
+          "type": "Date"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functions.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": [
+        {
+          "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/functioncallsfunction.ts",
+          "callsGlobCount": 1
+        }
+      ]
+    },
+    "callsCount": 5
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunctionDclumps",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/Dclumps.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  },
+  {
+    "functionInfo": {
+      "functionName": "smellyFunction",
+      "parameters": [
+        {
+          "name": "param1",
+          "type": "string"
+        },
+        {
+          "name": "param2",
+          "type": "number"
+        },
+        {
+          "name": "param3",
+          "type": "boolean"
+        }
+      ]
+    },
+    "filePath": "C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/testExtra/functionsSmells.ts",
+    "callsList": {
+      "callsInSame": 0,
+      "callsGlob": []
+    },
+    "callsCount": 0
+  }
+]
