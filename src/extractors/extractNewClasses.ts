@@ -171,7 +171,7 @@ export function createNewClassesFromDataClumpsList(
     createGettersAndSetters(leastParameterMethod, newClassDeclaration);
 
     const newClassInfo = exportNewFileData(newClassDeclaration, fileName);
-    refactorInSameClass(leastParameterMethod, newClassInfo);
+    refactorSmellyMethod(leastParameterMethod, newClassInfo);
 
     console.log(
       `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
@@ -266,33 +266,33 @@ function updateReferences(
   method.setBodyText(methodBody);
 }
 
-function findAndReplaceMethodCalls(
-  file: SourceFile,
-  smellyMethod: SmellyMethods,
-  newClassInfo: NewClassInfo
-) {
-  const callExpressions = file.getDescendantsOfKind(SyntaxKind.CallExpression);
+// function findAndReplaceMethodCalls(
+//   file: SourceFile,
+//   smellyMethod: SmellyMethods,
+//   newClassInfo: NewClassInfo
+// ) {
+//   const callExpressions = file.getDescendantsOfKind(SyntaxKind.CallExpression);
 
-  callExpressions.forEach((call) => {
-    if (call.getExpression().getText() === smellyMethod.methodInfo.methodName) {
-      call.getArguments().forEach((arg) => {
-        smellyMethod.methodInfo.parameters.forEach((smellyParam) => {
-          if (arg.getText() === smellyParam.name) {
-            arg.replaceWithText(
-              `new ${
-                newClassInfo.className
-              }(${smellyMethod.methodInfo.parameters
-                .map((param) => param.name)
-                .join(", ")})`
-            );
-          }
-        });
-      });
-    }
-  });
-}
+//   callExpressions.forEach((call) => {
+//     if (call.getExpression().getText() === smellyMethod.methodInfo.methodName) {
+//       call.getArguments().forEach((arg) => {
+//         smellyMethod.methodInfo.parameters.forEach((smellyParam) => {
+//           if (arg.getText() === smellyParam.name) {
+//             arg.replaceWithText(
+//               `new ${
+//                 newClassInfo.className
+//               }(${smellyMethod.methodInfo.parameters
+//                 .map((param) => param.name)
+//                 .join(", ")})`
+//             );
+//           }
+//         });
+//       });
+//     }
+//   });
+// }
 
-export function refactorInSameClass(
+export function refactorSmellyMethod(
   smellyMethod: SmellyMethods,
   newClassInfo: NewClassInfo
 ) {
@@ -303,7 +303,7 @@ export function refactorInSameClass(
   if (method) {
     replaceParameters(method, newClassInfo, smellyMethod);
     updateReferences(method, smellyMethod);
-    findAndReplaceMethodCalls(file, smellyMethod, newClassInfo);
+    // findAndReplaceMethodCalls(file, smellyMethod, newClassInfo);
   }
 
   file.saveSync();
