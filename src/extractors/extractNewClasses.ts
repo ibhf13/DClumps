@@ -1,4 +1,5 @@
 import {
+  Block,
   ClassDeclaration,
   MethodDeclaration,
   Project,
@@ -336,12 +337,18 @@ function handleCallsInSameClass(
                 .getFirstAncestorByKind(SyntaxKind.ExpressionStatement)
                 .getChildIndex();
               if (parentStatementIndex !== undefined) {
-                method
-                  .getBody()
-                  .insertStatements(parentStatementIndex, newInstance);
-                callExpression.replaceWithText(
-                  `${propertyAccessExpression.getText()}(${newInstanceName})`
-                );
+                const body = method.getBody();
+                if (body.getKind() === SyntaxKind.Block) {
+                  (body as Block).insertStatements(
+                    parentStatementIndex,
+                    newInstance
+                  );
+                  callExpression.replaceWithText(
+                    `${propertyAccessExpression.getText()}(${newInstanceName})`
+                  );
+                } else {
+                  console.error("Method body is not a Block");
+                }
               }
             }
           }

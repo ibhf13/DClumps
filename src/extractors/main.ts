@@ -21,7 +21,7 @@ let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 const MIN_MATCHES = 3;
 
-const projectDirectory = "./src/test";
+const projectDirectory = "./src";
 codeAnalyzerProject.addSourceFilesAtPaths(`${projectDirectory}/**/*.ts`);
 
 function projectFileList(): string[] {
