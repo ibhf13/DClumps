@@ -204,8 +204,6 @@ function getImportPath(from: string, to: string) {
   return relativePath;
 }
 
-// Rest of the code remains same ..
-
 function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
   const filePath = file.getFilePath();
   const correctPath = getImportPath(filePath, newClassInfo.filepath);
@@ -246,26 +244,35 @@ function replaceParameters(
   newClassInfo: NewClassInfo,
   smellyMethod: SmellyMethods
 ) {
-  if (
-    method.getParameters().length === smellyMethod.methodInfo.parameters.length
-  ) {
-    method.getParameters().forEach((param) => param.remove());
+  const methodParameters = method.getParameters();
+
+  if (methodParameters.length === smellyMethod.methodInfo.parameters.length) {
+    // If the method parameters match exactly with the smelly parameters, replace all with an instance of the new class
+    methodParameters.forEach((param) => param.remove());
     method.addParameter({
       name: "newParam",
       type: newClassInfo.className,
     });
   } else {
-    method.getParameters().forEach((param) => {
-      smellyMethod.methodInfo.parameters.forEach((smellyParam) => {
-        if (param.getName() === smellyParam.name) {
-          param.remove();
-          method.addParameter({
-            name: smellyParam.name,
-            type: newClassInfo.className,
-          });
-        }
-      });
+    // If the method has extra parameters, only replace the ones that match the smelly parameters
+    const smellyParamNames = smellyMethod.methodInfo.parameters.map(
+      (param) => param.name
+    );
+    let foundSmellyParams = false;
+
+    methodParameters.forEach((param) => {
+      if (smellyParamNames.includes(param.getName())) {
+        foundSmellyParams = true;
+        param.remove();
+      }
     });
+
+    if (foundSmellyParams) {
+      method.insertParameter(0, {
+        name: "newParam",
+        type: newClassInfo.className,
+      });
+    }
   }
 }
 
