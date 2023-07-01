@@ -15,6 +15,7 @@ import {
   MethodInfo,
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
+import path = require("path");
 const project = new Project();
 const outputPath = "./src/output/extractedClasses/";
 
@@ -172,7 +173,11 @@ export function createNewClassesFromDataClumpsList(
     createGettersAndSetters(leastParameterMethod, newClassDeclaration);
 
     const newClassInfo = exportNewFileData(newClassDeclaration, fileName);
-    refactorSmellyMethod(leastParameterMethod, newClassInfo);
+
+    // Refactor all methods in the smellyMethods group
+    dataClump.smellyMethods?.forEach((smellyMethod) => {
+      refactorSmellyMethod(smellyMethod, newClassInfo);
+    });
 
     console.log(
       `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
@@ -186,11 +191,39 @@ function parseFileToAst(filepath: string): SourceFile {
   return project.addSourceFileAtPath(filepath);
 }
 
+function getImportPath(from: string, to: string) {
+  let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
+
+  if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
+    relativePath = "./" + relativePath;
+  }
+
+  // replace .ts or .js at the end of relative path
+  relativePath = relativePath.replace(".ts", "");
+
+  return relativePath;
+}
+
+// Rest of the code remains same ..
+
 function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
-  file.addImportDeclaration({
-    moduleSpecifier: newClassInfo.filepath.replace(".ts", ""),
-    namedImports: [newClassInfo.className],
-  });
+  const filePath = file.getFilePath();
+  const correctPath = getImportPath(filePath, newClassInfo.filepath);
+
+  const existingImport = file.getImportDeclaration(
+    (declaration) =>
+      declaration.getModuleSpecifierValue() === correctPath &&
+      declaration
+        .getNamedImports()
+        .some((namedImport) => namedImport.getName() === newClassInfo.className)
+  );
+
+  if (!existingImport) {
+    file.addImportDeclaration({
+      moduleSpecifier: correctPath,
+      namedImports: [newClassInfo.className],
+    });
+  }
 }
 
 function findMethodInAst(
