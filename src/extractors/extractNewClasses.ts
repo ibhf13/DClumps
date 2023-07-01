@@ -93,16 +93,24 @@ function implementConstructor(
 ) {
   const constructorDeclaration = newClassDeclaration.addConstructor();
 
-  smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
-    constructorDeclaration.addParameter({
-      name: parameter.name,
-      type: parameter.type,
-    });
+  smellyMethod.methodInfo.parameters.forEach(
+    (parameter: ParameterInfo, index: number) => {
+      constructorDeclaration.addParameter({
+        name: parameter.name,
+        type: parameter.type,
+      });
 
-    constructorDeclaration.setBodyText((writer) =>
-      writer.write(`this.${parameter.name} = ${parameter.name};`)
-    );
-  });
+      if (index === 0) {
+        constructorDeclaration.setBodyText((writer) =>
+          writer.write(`this.${parameter.name} = ${parameter.name};`)
+        );
+      } else {
+        constructorDeclaration.addStatements((writer) =>
+          writer.write(`this.${parameter.name} = ${parameter.name};`)
+        );
+      }
+    }
+  );
 }
 
 function createGettersAndSetters(
