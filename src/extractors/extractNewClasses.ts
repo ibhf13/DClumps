@@ -238,28 +238,27 @@ function updateReferences(
   smellyMethod: SmellyMethods
 ) {
   let methodBody = method.getBodyText();
+  smellyMethod.methodInfo.parameters.forEach((parameter) => {
+    const getterName = `get${
+      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
+    }`;
+    const setterName = `set${
+      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
+    }`;
 
-  smellyMethod.methodInfo.parameters.forEach((smellyParam) => {
-    // Build getter and setter names
-    const getterName =
-      "get" +
-      smellyParam.name.charAt(0).toUpperCase() +
-      smellyParam.name.slice(1);
-    const setterName =
-      "set" +
-      smellyParam.name.charAt(0).toUpperCase() +
-      smellyParam.name.slice(1);
-
-    // Replace getter: <paramName> with newParam.get<ParamName>()
-    const getterRegex = new RegExp("\\b" + smellyParam.name + "\\b", "g");
-    methodBody = methodBody.replace(getterRegex, `newParam.${getterName}()`);
-    //test
-    // Replace setter: this.<paramName> = <value>; with newParam.set<ParamName>(<value>);
-    const setterRegex = new RegExp(
-      "this." + smellyParam.name + "\\s*=\\s*(.*?);",
+    // Regular expression to find assignments to this parameter
+    const assignmentRegex = new RegExp(
+      `(\\b${parameter.name}\\s*=\\s*)([^;]+)`,
       "g"
     );
-    methodBody = methodBody.replace(setterRegex, `newParam.${setterName}($1);`);
+    methodBody = methodBody.replace(
+      assignmentRegex,
+      `newParam.${setterName}($2)`
+    );
+
+    // Replace direct usage of the parameter with getter
+    const usageRegex = new RegExp(`\\b${parameter.name}\\b`, "g");
+    methodBody = methodBody.replace(usageRegex, `newParam.${getterName}()`);
   });
 
   method.setBodyText(methodBody);

@@ -1,5 +1,3 @@
-import { InterXInterYInterString } from "./src/output/extractedClasses/Class2";
-
 interface SomeInterface {
   notSmellyMethod(interX: number, interY: number, interString: string): void;
 }
@@ -9,7 +7,8 @@ class Class1 {
     someInterfaceInstance.notSmellyMethod(0, 0, "");
   }
 
-  notSmellyMethod(newParam: InterXInterYInterString) {
+  notSmellyMethod(interX: number, interY: number, interString: string) {
+    // Implementation of notSmellyMethod in Class1
   }
 }
 

@@ -1,5 +1,3 @@
-import { ParaXParaStringParaY } from "./src/output/extractedClasses/test1";
-
 class test2 {
   public smellyMethod1(
     paraX: number,
@@ -17,9 +15,9 @@ class test2 {
 }
 
 class test1 {
-  public smellyMethod2(newParam: ParaXParaStringParaY): void {
-      let tempString: string = newParam.getParaString();
-      newParam.getParaX() = newParam.getParaY() + 10;
+  public smellyMethod2(paraX: number, paraString: string, paraY: number): void {
+    let tempString: string = paraString;
+    paraX = paraY + 10;
   }
 
   public normalMethod(): void {
