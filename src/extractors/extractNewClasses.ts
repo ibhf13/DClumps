@@ -2,6 +2,7 @@ import {
   ClassDeclaration,
   MethodDeclaration,
   Project,
+  PropertyAccessExpression,
   Scope,
   SourceFile,
   SyntaxKind,
@@ -266,31 +267,48 @@ function updateReferences(
   method.setBodyText(methodBody);
 }
 
-// function findAndReplaceMethodCalls(
-//   file: SourceFile,
-//   smellyMethod: SmellyMethods,
-//   newClassInfo: NewClassInfo
-// ) {
-//   const callExpressions = file.getDescendantsOfKind(SyntaxKind.CallExpression);
-
-//   callExpressions.forEach((call) => {
-//     if (call.getExpression().getText() === smellyMethod.methodInfo.methodName) {
-//       call.getArguments().forEach((arg) => {
-//         smellyMethod.methodInfo.parameters.forEach((smellyParam) => {
-//           if (arg.getText() === smellyParam.name) {
-//             arg.replaceWithText(
-//               `new ${
-//                 newClassInfo.className
-//               }(${smellyMethod.methodInfo.parameters
-//                 .map((param) => param.name)
-//                 .join(", ")})`
-//             );
-//           }
-//         });
-//       });
-//     }
-//   });
-// }
+function handleCallsInSameClass(
+  classDeclaration: ClassDeclaration,
+  refactoredMethod: MethodDeclaration,
+  newClassInfo: NewClassInfo,
+  smellyMethod: SmellyMethods
+) {
+  const refactoredMethodName = refactoredMethod.getName();
+  classDeclaration.getMethods().forEach((method) => {
+    if (method === refactoredMethod) {
+      return;
+    }
+    method
+      .getDescendantsOfKind(SyntaxKind.CallExpression)
+      .forEach((callExpression) => {
+        const expression = callExpression.getExpression();
+        if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
+          const propertyAccessExpression =
+            expression as PropertyAccessExpression;
+          if (propertyAccessExpression.getName() === refactoredMethodName) {
+            const args = callExpression.getArguments();
+            if (args.length === smellyMethod.methodInfo.parameters.length) {
+              const newInstanceName = `${smellyMethod.methodInfo.methodName}Instance`;
+              const newInstance = `${newInstanceName} = new ${
+                newClassInfo.className
+              }(${args.map((arg) => arg.getText()).join(", ")});`;
+              const parentStatementIndex = callExpression
+                .getFirstAncestorByKind(SyntaxKind.ExpressionStatement)
+                .getChildIndex();
+              if (parentStatementIndex !== undefined) {
+                method
+                  .getBody()
+                  .insertStatements(parentStatementIndex, newInstance);
+                callExpression.replaceWithText(
+                  `${propertyAccessExpression.getText()}(${newInstanceName})`
+                );
+              }
+            }
+          }
+        }
+      });
+  });
+}
 
 export function refactorSmellyMethod(
   smellyMethod: SmellyMethods,
@@ -303,7 +321,21 @@ export function refactorSmellyMethod(
   if (method) {
     replaceParameters(method, newClassInfo, smellyMethod);
     updateReferences(method, smellyMethod);
-    // findAndReplaceMethodCalls(file, smellyMethod, newClassInfo);
+
+    // Get the class containing the smelly method
+    const className = smellyMethod.classInfo.className;
+    const classDeclaration = file
+      .getClasses()
+      .find((cls) => cls.getName() === className);
+
+    if (classDeclaration) {
+      handleCallsInSameClass(
+        classDeclaration,
+        method,
+        newClassInfo,
+        smellyMethod
+      );
+    }
   }
 
   file.saveSync();
