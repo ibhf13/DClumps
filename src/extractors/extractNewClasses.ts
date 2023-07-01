@@ -253,7 +253,7 @@ function updateReferences(
     // Replace getter: <paramName> with newParam.get<ParamName>()
     const getterRegex = new RegExp("\\b" + smellyParam.name + "\\b", "g");
     methodBody = methodBody.replace(getterRegex, `newParam.${getterName}()`);
-
+    //test
     // Replace setter: this.<paramName> = <value>; with newParam.set<ParamName>(<value>);
     const setterRegex = new RegExp(
       "this." + smellyParam.name + "\\s*=\\s*(.*?);",
