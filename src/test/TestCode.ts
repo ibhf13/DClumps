@@ -17,9 +17,9 @@ class test2 {
 class test1 {
   public smellyMethod2(paraX: number, paraString: string, paraY: number): void {
     let tempString: string = paraString;
-    paraX = paraY + 10;
+    paraX = (paraY = paraY + 8) + 10;
   }
-
+  //
   public normalMethod(): void {
     let test = new test2();
     test.smellyMethod1(10, 5, "w", "x");

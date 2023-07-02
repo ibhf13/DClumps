@@ -108,19 +108,13 @@ function updateMethodParameter(newClassInfo: NewClassInfo, method) {
     (param) => !isCommonParmeter(param.getName(), newClassInfo.parameters)
   );
 
-  console.log(`Method Params: ${methodParams.map((p) => p.getName())}`);
-  console.log(`Common Params: ${commonParameters.map((p) => p.getName())}`);
-  console.log(`Uncommon Params: ${uncommonParameters.map((p) => p.getName())}`);
-
   uncommonParameters.forEach((param) => {
-    console.log(`Adding uncommon parameter: ${param.getName()}`);
     method.insertParameter(0, {
       name: param.getName(),
       type: param.getType().getText(),
     });
   });
 
-  console.log(`Adding new parameter: ${newClassInfo.className}Instance`);
   method.addParameter({
     name: `${newClassInfo.className}Instance`,
     type: newClassInfo.className,
@@ -155,18 +149,24 @@ function updateMethodBody(
     ) {
       console.log(`Binary expression: ${binaryExpression.getText()}`);
       let replacement;
-      if (isCommonParmeter(left.getText(), newClassInfo.parameters)) {
-        replacement = `${instance}.set${getCamelCase(
-          left.getText()
-        )}(${right.getText()})`;
-        console.log(`Replacement: ${replacement}`);
-      }
+      console.log("right---------------------\n", right.getText());
+      console.log("left---------------------\n", left.getText());
+
       if (isCommonParmeter(right.getText(), newClassInfo.parameters)) {
         replacement = `${left.getText()} = ${instance}.get${getCamelCase(
           right.getText()
         )}()`;
         console.log(`Replacement: ${replacement}`);
       }
+      if (isCommonParmeter(left.getText(), newClassInfo.parameters)) {
+        console.log("setright---------------------\n", right.getText());
+
+        replacement = `${instance}.set${getCamelCase(
+          left.getText()
+        )}(${right.getText()})`;
+        console.log(`Replacement: ${replacement}`);
+      }
+
       replacements.push({ binaryExpression, replacement });
     }
   }
