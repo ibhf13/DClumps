@@ -17,6 +17,7 @@ export interface ClassInfo {
 export interface NewClassInfo {
   className: string;
   filepath: string;
+  parameters: ParameterInfo[];
 }
 
 export interface SmellyMethods {

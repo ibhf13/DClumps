@@ -1,0 +1,85 @@
+
+1. create "refactorMethods(newClassInfo,leastParameterMethod,smellymethodGroup)" that refactor alle methods in smellymethodGroup
+2. make copy of smellymethodGroupCopy
+3. make function "deleteLeastParameterMethod(leastParameterMethod)" that delete this method "leastParameterMethod" from smellymethodGroupCopy
+and return smellymethodGroupCopy
+
+4. make function "refactorLeastParameterMethod(newClassInfo,leastParameterMethod)" that refactor this method
+  fyi:
+  leastParameterMethod has {MethodInfo,classInfo,CallsList,callsCount}
+  MethodInfo has {methodName,ParameterInfo[]}
+  ParameterInfo has {name,type,value?}
+  classInfo has {className,filepath}
+  NewClassInfo has {className,filepath,ParameterInfo[]}
+  
+  4.1. make function "importNewClass" that import the new file in refactored class if not exist
+  4.2. make function "isCommonParmeter(parms,newClassParams)" that return true if parms name exist in newClassParams
+
+  4.3. make function "updateMethodParameter(newClassInfo,method)"
+    4.3.1. check the method parameters and compare them to the newClassInfo.ParameterInfo
+    4.3.2. add the not common parameters to the method parameter first
+    4.3.3. replace the common parameters with(name: "newClassInfo.className +instance", type: newClassInfo.className)
+    
+  4.4. make a function "updateMethodBody(instance,commonParmeters)" to replace the common parameters usage in the method body with getter and setter
+      4.4.1. iterate through each statement
+      4.4.2. check only commonParmeters
+      4.4.3. if if not BinaryExpression replace it with function "useGetter"
+        4.4.3.1. make function "useGetter(instance,param)"  that replace the param with instance.getter(PropertyAccesExpression)
+      4.4.4. else replace it with ExpressionStatement 
+      left side : (CallExpression: instance , PropertyAccesExpression fot setter ,
+      right side : arguments(BinaryExpression(check if isCommonParmeter  then replace it with(PropertyAccesExpression for getter) else let it as its)
+  
+  4.5. make function handelInSameCalls(newClassInfo,method)
+    4.5.1. check the file for calls
+    4.5.2. store the call arguments values
+    
+    4.5.2. make new function "createNewInstance(newClassInfo,arguments)"before the call
+      
+    4.5.1
+    
+  
+  4.6. make function handelGlobalCalls
+      4.6.1. use importNewClass
+      4.6.2. use handelInSameCalls
+5. make function "refactorsmellymethodGroupCopy(newClassInfo,smellymethodGroupCopy)" that iterate through all methods in smellymethodGroupCopy
+  5.1 forEach method apply step4
+
+
+check if its not BinaryExpression then replace it wit "useGetterRegex(instance,commonParmeter)" instanceName.getcommonParmeter.name.charAt(0).toUpperCase()+"()"
+if assignment use useSetterRegex(instance,commonParmeter){
+  instanceName.setcommonParmeter.name.charAt(0).toUpperCase() +"("+ 
+  if the right side has any commonParmeters replace it wit useGetterRegex else use it as it's
+} 
+Refactoring"
+    4.3. Refactor in same class
+        4.3.1. Parse the stored file into an AST from the method info filepath.
+        4.3.2. Import the newly created class as an object from the new filepath.
+        4.3.3. look for the smelly method in the AST.
+        4.3.4. Replace the old parameters 
+            4.3.4.1. check the method parameters if it has the same number as the new class if yes
+                Replace the parameters with a single parameter: an instance of the new class.
+            4.3.4.2.else replace only the common parameter and leave the rest as its
+        4.3.5. Update variables/references within the method using the generated getters and setters.
+        4.3.6. Check the rest of the file (AST) for calls to the smelly method.
+            
+        For each method call in the sameclass:
+            4.3.6.1. Create a new instance of the class before the method call.
+            4.3.6.2. Set the instance's properties using the original method parameters.
+            4.3.6.3. Replace the method call's parameters with the new instance.
+            4.3.6.4. Use a linter and formatter to ensure the refactored code aligns with the style guidelines of the project.
+            4.3.6.5. Repeat steps 4.3.6 for all method calls in same class.
+    
+        4.3.7. check method calls in the other files using the CallsList
+
+        for each entry in the callsList
+            4.3.7.1. parse the AST from filepath in the CallsList
+            4.3.7.2. Import the newly created class as an object from the saved new filepath.
+            4.3.7.3. do step 4.3.6
+    4.4. delete the refactored method from the smellymethodGroup
+    4.5. refactor the rest in the smellymethodGroup using the  new created class
+        4.5.1. redo 4.3 and 4.4 untill the smellymethodGroup is empty
+
+    4.6. Once the first entry is empty delete it from Data_Clumps_List
+     and move on to the next  entry "smellymethodGroup" in the list.
+
+    4.7. If Data_Clumps_List is empty then the Refactoring is done    

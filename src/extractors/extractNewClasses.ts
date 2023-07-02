@@ -1,50 +1,51 @@
-import {
-  Block,
-  ClassDeclaration,
-  MethodDeclaration,
-  Project,
-  PropertyAccessExpression,
-  Scope,
-  SourceFile,
-  SyntaxKind,
-} from "ts-morph";
+import { ClassDeclaration, Project, Scope } from "ts-morph";
 import {
   DataClumpsList,
   SmellyMethods,
   ParameterInfo,
   NewClassInfo,
-  MethodInfo,
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
-import path = require("path");
+import { refactorMethods } from "./refactorDclumps";
 const project = new Project();
 const outputPath = "./src/output/extractedClasses/";
 
-function generateUniqueFileName(baseName: string): string {
-  let counter = 0;
-  let fileName = `${baseName}.ts`;
-
-  while (existsSync(`${outputPath}${fileName}`)) {
-    counter++;
-    fileName = `${baseName}${counter}.ts`;
-  }
-
-  return fileName;
-}
-
-function exportNewFileData(
-  newClassDeclaration: ClassDeclaration,
-  fileName: string
+export function createNewClassesFromDataClumpsList(
+  dataClumpsList: DataClumpsList[]
 ) {
-  const filePath = outputPath + fileName;
-
-  const project = new Project();
-  const sourceFile: SourceFile = project.createSourceFile(filePath);
-  sourceFile.addClass(newClassDeclaration.getStructure());
+  dataClumpsList.forEach((smellymethodGroup) => {
+    createNewClass(smellymethodGroup);
+  });
 
   project.saveSync();
+}
 
-  return { className: newClassDeclaration.getName(), filepath: filePath };
+function createNewClass(smellymethodGroup) {
+  const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
+  let newClassName = getNewClassName(leastParameterMethod);
+  const fileName = generateUniqueFileName(
+    leastParameterMethod.classInfo.className
+  );
+
+  const newClassDeclaration = createAndGetNewClass(
+    newClassName,
+    fileName,
+    leastParameterMethod
+  );
+  const newClassInfo = exportNewFileData(
+    newClassDeclaration,
+    fileName,
+    leastParameterMethod.methodInfo.parameters
+  );
+  refactorMethods(
+    newClassInfo,
+    leastParameterMethod,
+    smellymethodGroup,
+    project
+  );
+  console.log(
+    `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
+  );
 }
 
 function getMethodWithLeastParameters(
@@ -59,25 +60,43 @@ function getMethodWithLeastParameters(
   });
 }
 
-function createNewClass(
-  fileName: string,
-  newClassName: string
-): ClassDeclaration {
-  const srcFile = project.createSourceFile(
-    `src/output/extractedClasses/${fileName}`,
-    "",
-    { overwrite: true }
-  );
-
-  const newClass = srcFile.addClass({
-    name: newClassName,
-    isExported: true,
-  });
-
-  return newClass;
+function getNewClassName(leastParameterMethod) {
+  return leastParameterMethod.methodInfo.parameters
+    .map(
+      (parameter) =>
+        parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
+    )
+    .join("");
 }
 
-function defineClassVariables(
+function generateUniqueFileName(baseName: string): string {
+  let counter = 0;
+  let fileName = `${baseName}.ts`;
+
+  while (existsSync(`${outputPath}${fileName}`)) {
+    counter++;
+    fileName = `${baseName}${counter}.ts`;
+  }
+
+  return fileName;
+}
+
+function createAndGetNewClass(newClassName, fileName, leastParameterMethod) {
+  const newClassDeclaration = initializeNewClass(fileName, newClassName);
+  generateClassVariables(leastParameterMethod, newClassDeclaration);
+  generateConstructor(leastParameterMethod, newClassDeclaration);
+  generateGettersAndSetters(leastParameterMethod, newClassDeclaration);
+
+  return newClassDeclaration;
+}
+
+function initializeNewClass(fileName, className) {
+  const filePath = outputPath + fileName;
+  const newClassFile = project.createSourceFile(filePath);
+  return newClassFile.addClass({ name: className, isExported: true });
+}
+
+function generateClassVariables(
   smellyMethod: SmellyMethods,
   newClassDeclaration: ClassDeclaration
 ) {
@@ -90,7 +109,7 @@ function defineClassVariables(
   });
 }
 
-function implementConstructor(
+function generateConstructor(
   smellyMethod: SmellyMethods,
   newClassDeclaration: ClassDeclaration
 ) {
@@ -116,7 +135,7 @@ function implementConstructor(
   );
 }
 
-function createGettersAndSetters(
+function generateGettersAndSetters(
   smellyMethod: SmellyMethods,
   newClassDeclaration: ClassDeclaration
 ) {
@@ -141,249 +160,202 @@ function createGettersAndSetters(
   });
 }
 
-export function createNewClassesFromDataClumpsList(
-  dataClumpsList: DataClumpsList[]
-) {
-  dataClumpsList.forEach((dataClump) => {
-    const leastParameterMethod = getMethodWithLeastParameters(dataClump);
-
-    // Generate newClassName by joining parameter names
-    let newClassName = leastParameterMethod.methodInfo.parameters
-      .map(
-        (parameter) =>
-          parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
-      )
-      .join("");
-
-    // If no parameters, fallback to the class name
-    if (newClassName === "") {
-      newClassName = leastParameterMethod.classInfo.className;
-    }
-
-    // File name should be based on the class name
-    const fileName = generateUniqueFileName(
-      leastParameterMethod.classInfo.className
-    );
-
-    const newClassDeclaration = createNewClass(fileName, newClassName);
-
-    defineClassVariables(leastParameterMethod, newClassDeclaration);
-
-    implementConstructor(leastParameterMethod, newClassDeclaration);
-
-    createGettersAndSetters(leastParameterMethod, newClassDeclaration);
-
-    const newClassInfo = exportNewFileData(newClassDeclaration, fileName);
-
-    // Refactor all methods in the smellyMethods group
-    dataClump.smellyMethods?.forEach((smellyMethod) => {
-      refactorSmellyMethod(smellyMethod, newClassInfo);
-    });
-
-    console.log(
-      `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
-    );
-  });
-
-  project.saveSync();
+function exportNewFileData(
+  newClassDeclaration: ClassDeclaration,
+  fileName: string,
+  parameters: ParameterInfo[]
+): NewClassInfo {
+  const filePath = outputPath + fileName;
+  return {
+    className: newClassDeclaration.getName(),
+    filepath: filePath,
+    parameters: parameters,
+  };
 }
 
-function parseFileToAst(filepath: string): SourceFile {
-  return project.addSourceFileAtPath(filepath);
-}
+// //Refactoring
+// function getSmellyMethod(file, methodName: string) {
+//   return file.getFunction(methodName);
+// }
 
-function getImportPath(from: string, to: string) {
-  let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
+// function getImportPath(from: string, to: string) {
+//   let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
 
-  if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
-    relativePath = "./" + relativePath;
-  }
+//   if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
+//     relativePath = "./" + relativePath;
+//   }
 
-  // replace .ts or .js at the end of relative path
-  relativePath = relativePath.replace(".ts", "");
+//   // replace .ts or .js at the end of relative path
+//   relativePath = relativePath.replace(".ts", "");
 
-  return relativePath;
-}
+//   return relativePath;
+// }
 
-function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
-  const filePath = file.getFilePath();
-  const correctPath = getImportPath(filePath, newClassInfo.filepath);
+// function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
+//   const filePath = file.getFilePath();
+//   const correctPath = getImportPath(filePath, newClassInfo.filepath);
 
-  const existingImport = file.getImportDeclaration(
-    (declaration) =>
-      declaration.getModuleSpecifierValue() === correctPath &&
-      declaration
-        .getNamedImports()
-        .some((namedImport) => namedImport.getName() === newClassInfo.className)
-  );
+//   const existingImport = file.getImportDeclaration(
+//     (declaration) =>
+//       declaration.getModuleSpecifierValue() === correctPath &&
+//       declaration
+//         .getNamedImports()
+//         .some((namedImport) => namedImport.getName() === newClassInfo.className)
+//   );
 
-  if (!existingImport) {
-    file.addImportDeclaration({
-      moduleSpecifier: correctPath,
-      namedImports: [newClassInfo.className],
-    });
-  }
-}
+//   if (!existingImport) {
+//     file.addImportDeclaration({
+//       moduleSpecifier: correctPath,
+//       namedImports: [newClassInfo.className],
+//     });
+//   }
+// }
 
-function findMethodInAst(
-  file: SourceFile,
-  methodInfo: MethodInfo
-): MethodDeclaration | undefined {
-  const classes = file.getClasses();
-  let methodDeclaration: MethodDeclaration | undefined;
+// function refactorSmellyMethodParameters(
+//   method: FunctionDeclaration,
+//   commonParams: ParameterInfo[]
+// ) {
+//   const params = method.getParameters();
 
-  classes.some((cls) => {
-    methodDeclaration = cls.getMethod(methodInfo.methodName);
-    return methodDeclaration !== undefined;
-  });
+//   for (let i = 0; i < params.length; i++) {
+//     const param = params[i];
+//     const commonParam = commonParams.find((p) => p.name === param.getName());
 
-  return methodDeclaration;
-}
+//     if (commonParam) {
+//       param.setType(commonParam.type);
+//       if (commonParam.value) {
+//         param.setInitializer(commonParam.value);
+//       }
+//     }
+//   }
+// }
 
-function replaceParameters(
-  method: MethodDeclaration,
-  newClassInfo: NewClassInfo,
-  smellyMethod: SmellyMethods
-) {
-  const methodParameters = method.getParameters();
+// //
+// //
+// //
+// //
+// //
+// //
+// //
+// //
+// //
+// // Step 4.3.4: Refactor parameters in the smelly method
+// function refactorParameters(
+//   method: FunctionDeclaration,
+//   methodInfo: MethodInfo,
+//   newClassInfo: NewClassInfo
+// ) {
+//   const parameters = method.getParameters();
+//   const commonParameters = methodInfo.parameters.filter((param) =>
+//     parameters.some((p) => p.getName() === param.name)
+//   );
 
-  if (methodParameters.length === smellyMethod.methodInfo.parameters.length) {
-    // If the method parameters match exactly with the smelly parameters, replace all with an instance of the new class
-    methodParameters.forEach((param) => param.remove());
-    method.addParameter({
-      name: "newParam",
-      type: newClassInfo.className,
-    });
-  } else {
-    // If the method has extra parameters, only replace the ones that match the smelly parameters
-    const smellyParamNames = smellyMethod.methodInfo.parameters.map(
-      (param) => param.name
-    );
-    let foundSmellyParams = false;
+//   if (commonParameters.length === parameters.length) {
+//     // Replace all parameters with a single instance of the new class
+//     const newClassInstance = method.insertParameter(0, {
+//       name: "newClassInstance",
+//       type: newClassInfo.className,
+//     });
+//     parameters.forEach((param) => param.remove());
+//   } else {
+//     // Replace only common parameters, leave the rest as is
+//     commonParameters.forEach((param) => {
+//       const index = parameters.findIndex((p) => p.getName() === param.name);
+//       if (index !== -1) {
+//         parameters[index].replaceWithText(`newClassInstance.${param.name}`);
+//       }
+//     });
+//   }
+// }
 
-    methodParameters.forEach((param) => {
-      if (smellyParamNames.includes(param.getName())) {
-        foundSmellyParams = true;
-        param.remove();
-      }
-    });
+// // Step 4.3.5: Update variables/references within the method using the generated getters and setters
+// function updateMethodVariables(
+//   method: FunctionDeclaration,
+//   methodInfo: MethodInfo
+// ): void {
+//   method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((identifier) => {
+//     const name = identifier.getText();
+//     if (methodInfo.parameters.find((param) => param.name === name)) {
+//       identifier.replaceWithText(`newClassInstance.${name}`);
+//     }
+//   });
+// }
+// // Update variables/references within the method using the generated getters and setters
+// function updateMethodAssignments(
+//   method: FunctionDeclaration,
+//   methodInfo: MethodInfo
+// ): void {
+//   method
+//     .getDescendantsOfKind(SyntaxKind.BinaryExpression)
+//     .forEach((expression) => {
+//       if (expression.getOperatorToken().getKind() === SyntaxKind.EqualsToken) {
+//         const left = expression.getLeft();
+//         const right = expression.getRight();
 
-    if (foundSmellyParams) {
-      method.insertParameter(0, {
-        name: "newParam",
-        type: newClassInfo.className,
-      });
-    }
-  }
-}
+//         if (
+//           left.getKind() === SyntaxKind.Identifier &&
+//           methodInfo.parameters.find((param) => param.name === left.getText())
+//         ) {
+//           const setter = `set${capitalizeFirstLetter(left.getText())}`;
+//           expression.replaceWithText(
+//             `newClassInstance.${setter}(${right.getText()})`
+//           );
+//         }
+//       }
+//     });
+// }
 
-function updateReferences(
-  method: MethodDeclaration,
-  smellyMethod: SmellyMethods
-) {
-  let methodBody = method.getBodyText();
-  smellyMethod.methodInfo.parameters.forEach((parameter) => {
-    const getterName = `get${
-      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
-    }`;
-    const setterName = `set${
-      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
-    }`;
+// // Step 4.3.6: Check the rest of the file (AST) for calls to the smelly method and refactor.
+// // function refactorMethodCalls(
+// //   file: SourceFile,
+// //   methodInfo: MethodInfo,
+// //   newClassInfo: NewClassInfo
+// // ): void {
+// //   file.getDescendantsOfKind(SyntaxKind.CallExpression).forEach((call) => {
+// //     if (call.getExpression().getText() === methodInfo.methodName) {
+// //       const parameters = call.getArguments().map((arg) => arg.getText());
+// //       call.replaceWithText(
+// //         `${methodInfo.methodName}(new ${
+// //           newClassInfo.className
+// //         }(${parameters.join(", ")}))`
+// //       );
+// //     }
+// //   });
+// // }
 
-    // Regular expression to find assignments to this parameter
-    const assignmentRegex = new RegExp(
-      `(\\b${parameter.name}\\s*=\\s*)([^;]+)`,
-      "g"
-    );
-    methodBody = methodBody.replace(
-      assignmentRegex,
-      `newParam.${setterName}($2)`
-    );
+// function parseFileToAst(filepath: string): SourceFile {
+//   return project.addSourceFileAtPath(filepath);
+// }
+// // Refactoring function for global calls
+// function refactorGlobalCalls(
+//   callsList: CallsList,
+//   methodInfo: MethodInfo,
+//   newClassInfo: NewClassInfo
+// ): void {
+//   callsList.callsGlob.forEach((call) => {
+//     const file = parseFileToAst(call.classInfo.filepath);
+//     refactorMethod(file, methodInfo, newClassInfo);
+//     importNewClass(file, newClassInfo);
+//     file.saveSync();
+//   });
+// }
 
-    // Replace direct usage of the parameter with getter
-    const usageRegex = new RegExp(`\\b${parameter.name}\\b`, "g");
-    methodBody = methodBody.replace(usageRegex, `newParam.${getterName}()`);
-  });
+// // Main refactoring function
+// function refactorMethod(
+//   file: SourceFile,
+//   methodInfo: MethodInfo,
+//   newClassInfo: NewClassInfo
+// ): void {
+//   const method = getSmellyMethod(file, methodInfo.methodName);
+//   if (method) {
+//     refactorParameters(method, methodInfo, newClassInfo);
+//     updateMethodVariables(method, methodInfo);
+//     updateMethodAssignments(method, methodInfo);
+//     refactorMethodCalls(file, methodInfo, newClassInfo);
+//     file.saveSync();
+//   }
+// }
 
-  method.setBodyText(methodBody);
-}
-
-function handleCallsInSameClass(
-  classDeclaration: ClassDeclaration,
-  refactoredMethod: MethodDeclaration,
-  newClassInfo: NewClassInfo,
-  smellyMethod: SmellyMethods
-) {
-  const refactoredMethodName = refactoredMethod.getName();
-  classDeclaration.getMethods().forEach((method) => {
-    if (method === refactoredMethod) {
-      return;
-    }
-    method
-      .getDescendantsOfKind(SyntaxKind.CallExpression)
-      .forEach((callExpression) => {
-        const expression = callExpression.getExpression();
-        if (expression.getKind() === SyntaxKind.PropertyAccessExpression) {
-          const propertyAccessExpression =
-            expression as PropertyAccessExpression;
-          if (propertyAccessExpression.getName() === refactoredMethodName) {
-            const args = callExpression.getArguments();
-            if (args.length === smellyMethod.methodInfo.parameters.length) {
-              const newInstanceName = `${smellyMethod.methodInfo.methodName}Instance`;
-              const newInstance = `${newInstanceName} = new ${
-                newClassInfo.className
-              }(${args.map((arg) => arg.getText()).join(", ")});`;
-              const parentStatementIndex = callExpression
-                .getFirstAncestorByKind(SyntaxKind.ExpressionStatement)
-                .getChildIndex();
-              if (parentStatementIndex !== undefined) {
-                const body = method.getBody();
-                if (body.getKind() === SyntaxKind.Block) {
-                  (body as Block).insertStatements(
-                    parentStatementIndex,
-                    newInstance
-                  );
-                  callExpression.replaceWithText(
-                    `${propertyAccessExpression.getText()}(${newInstanceName})`
-                  );
-                } else {
-                  console.error("Method body is not a Block");
-                }
-              }
-            }
-          }
-        }
-      });
-  });
-}
-
-export function refactorSmellyMethod(
-  smellyMethod: SmellyMethods,
-  newClassInfo: NewClassInfo
-) {
-  const file = parseFileToAst(smellyMethod.classInfo.filepath);
-  importNewClass(file, newClassInfo);
-
-  const method = findMethodInAst(file, smellyMethod.methodInfo);
-  if (method) {
-    replaceParameters(method, newClassInfo, smellyMethod);
-    updateReferences(method, smellyMethod);
-
-    // Get the class containing the smelly method
-    const className = smellyMethod.classInfo.className;
-    const classDeclaration = file
-      .getClasses()
-      .find((cls) => cls.getName() === className);
-
-    if (classDeclaration) {
-      handleCallsInSameClass(
-        classDeclaration,
-        method,
-        newClassInfo,
-        smellyMethod
-      );
-    }
-  }
-
-  file.saveSync();
-}
+// function capitalizeFirstLetter(string: string): string {
+//   return string.charAt(0).toUpperCase() + string.slice(1);
+// }

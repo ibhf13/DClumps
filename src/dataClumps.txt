@@ -1,0 +1,450 @@
+import {
+  ClassDeclaration,
+  ParameterDeclaration,
+  Project,
+  ReferenceFindableNode,
+  SyntaxKind,
+} from "ts-morph";
+import {
+  ClassInfo,
+  MethodInfo,
+  ParameterInfo,
+  DataClumpsList,
+  SmellyMethods,
+  GlobalCalls,
+} from "../utils/Interfaces";
+import { writeFileSync } from "fs";
+import { createNewClassesFromDataClumpsList } from "./extractNewClasses";
+
+let codeAnalyzerProject = new Project();
+let smellyMethodGroup: SmellyMethods[] = [];
+let Data_Clumps_List: DataClumpsList[] = [];
+const MIN_MATCHES = 3;
+
+const projectDirectory = "./src";
+codeAnalyzerProject.addSourceFilesAtPaths(`${projectDirectory}/**/*.ts`);
+
+function projectFileList(): string[] {
+  let project = new Project();
+  project.addSourceFilesAtPaths("./src/**/*.ts");
+
+  return project.getSourceFiles().map((file) => file.getFilePath());
+}
+
+function analyzeProjectFiles() {
+  let sourceFiles = codeAnalyzerProject.getSourceFiles();
+
+  sourceFiles.forEach((file) => {
+    // Analysis of classes
+    let classesInFile = file.getClasses();
+    classesInFile.forEach((cls) => {
+      const methods = cls.getMethods();
+      methods.forEach((method) => {
+        compareMethodsWithOtherFiles(method, cls, file.getFilePath());
+        //compareWithParentClassMethods(method, cls, file.getFilePath());
+      });
+    });
+
+    if (smellyMethodGroup.length > 1) {
+      console.log(
+        `Detected ${
+          smellyMethodGroup.length
+        } smelly methods in file: ${file.getFilePath()}`
+      );
+      Data_Clumps_List.push({
+        smellyMethods: [...smellyMethodGroup],
+      });
+      smellyMethodGroup = [];
+    }
+  });
+}
+
+function compareMethodsWithOtherFiles(method, clazz, filepath) {
+  const projectFiles = projectFileList();
+  let matchFound = false;
+
+  projectFiles.forEach((filePath) => {
+    matchFound = compareWithOtherClasses(method, filePath, matchFound);
+  });
+
+  storeSmellyMethods(matchFound, method, clazz, filepath);
+}
+
+function compareWithOtherClasses(method, filePath, matchFound) {
+  const sourceFile = codeAnalyzerProject.getSourceFile(filePath);
+  const classesInFile = sourceFile.getClasses();
+
+  classesInFile.forEach((otherClass) => {
+    matchFound = findMatchingMethods(method, otherClass, filePath, matchFound);
+  });
+
+  return matchFound;
+}
+
+function findMatchingMethods(method, otherClass, filePath, matchFound) {
+  const otherMethods = otherClass.getMethods();
+
+  otherMethods.forEach((otherMethod) => {
+    if (otherMethod !== method) {
+      const otherMethodParameters = otherMethod.getParameters();
+
+      if (otherMethodParameters.length > 2) {
+        const methodParameters = method.getParameters();
+        if (doParametersMatch(methodParameters, otherMethodParameters)) {
+          matchFound = true;
+          if (
+            !isMethodInDataClumpsList(
+              otherMethod.getName(),
+              otherClass.getName()
+            ) &&
+            !isMethodInSmellymethodGroup(
+              otherMethod.getName(),
+              otherClass.getName(),
+              filePath
+            )
+          ) {
+            storeMethodInfo(otherMethod, otherClass, filePath);
+          }
+        }
+      }
+    }
+  });
+
+  return matchFound;
+}
+function doParametersMatch(params1, params2) {
+  let matchMap = new Map();
+
+  for (let param1 of params1) {
+    for (let param2 of params2) {
+      if (
+        param1.getName() === param2.getName() &&
+        param1.getType().getText() === param2.getType().getText()
+      ) {
+        let matchKey = param1.getName() + param1.getType().getText();
+        matchMap.set(matchKey, (matchMap.get(matchKey) || 0) + 1);
+      }
+    }
+  }
+
+  let matchCount = 0;
+  for (let count of matchMap.values()) {
+    matchCount += count;
+    if (matchCount >= MIN_MATCHES) return true;
+  }
+
+  return false;
+}
+//TODO handle if parameter intersection it not the same
+function isMethodInDataClumpsList(methodName, className) {
+  return Data_Clumps_List.some((dataClump) =>
+    dataClump.smellyMethods.some(
+      (smellyMethod) =>
+        smellyMethod.methodInfo.methodName === methodName &&
+        smellyMethod.classInfo.className === className
+    )
+  );
+}
+
+function isMethodInSmellymethodGroup(methodName, className, filePath) {
+  return smellyMethodGroup.some(
+    (smellyMethod) =>
+      smellyMethod.methodInfo.methodName === methodName &&
+      smellyMethod.classInfo.className === className
+  );
+}
+
+function storeSmellyMethods(matchFound, method, clazz, filepath) {
+  if (
+    matchFound &&
+    !isMethodInDataClumpsList(method.getName(), clazz.getName())
+  ) {
+    storeMethodInfo(method, clazz, filepath);
+  }
+}
+function storeMethodInfo(method, clazz, filepath) {
+  const parametersOfMethod = method.getParameters();
+
+  // Don't store the method if it has no parameters
+  if (parametersOfMethod.length === 0) {
+    return;
+  }
+
+  const parameterInformation: ParameterInfo[] = parametersOfMethod.map(
+    (param: ParameterDeclaration) => ({
+      name: param.getName(),
+      type: param.getType().getText(),
+      value: param.getInitializer()?.getText(),
+    })
+  );
+
+  const methodDetails: MethodInfo = {
+    methodName: method.getName(),
+    parameters: parameterInformation,
+  };
+
+  const classDetails: ClassInfo = {
+    className: clazz.getName() || "",
+    filepath,
+  };
+
+  const smellyMethod: SmellyMethods = {
+    methodInfo: methodDetails,
+    classInfo: classDetails,
+    callsList: {
+      callsInSame: 0,
+      callsGlob: [],
+    },
+    callsCount: 0,
+  };
+
+  analyzeMethodReferences(smellyMethod, method, clazz);
+
+  smellyMethodGroup.push(smellyMethod);
+}
+
+function countCallsInSameClass(references, clazz: ClassDeclaration): number {
+  let callsInSameClass = 0;
+
+  for (const ref of references) {
+    const refClass = ref.getFirstAncestorByKind(SyntaxKind.ClassDeclaration);
+    if (!refClass) continue; // The reference might not be inside a class (it could be in a function or a variable, for example)
+
+    const isSameClass = refClass.getName() === clazz.getName();
+    if (isSameClass) callsInSameClass++;
+  }
+
+  return callsInSameClass;
+}
+
+function getGlobalCalls(references, clazz: ClassDeclaration): GlobalCalls[] {
+  let globalCalls: GlobalCalls[] = [];
+
+  for (const ref of references) {
+    const refClass = ref.getFirstAncestorByKind(SyntaxKind.ClassDeclaration);
+    if (!refClass || refClass.getName() === clazz.getName()) continue;
+
+    let foundGlobalCall = globalCalls.find(
+      (call) =>
+        call.classInfo.className === refClass.getName() &&
+        call.classInfo.filepath === refClass.getSourceFile().getFilePath()
+    );
+
+    if (foundGlobalCall) {
+      foundGlobalCall.callsGlobCount++;
+    } else {
+      globalCalls.push({
+        classInfo: {
+          className: refClass.getName() || "",
+          filepath: refClass.getSourceFile().getFilePath(),
+        },
+        callsGlobCount: 1,
+      });
+    }
+  }
+
+  return globalCalls;
+}
+
+function analyzeMethodReferences(
+  smellyMethod: SmellyMethods,
+  method: ReferenceFindableNode,
+  clazz: ClassDeclaration
+) {
+  const references = method.findReferencesAsNodes();
+
+  const callsInSameClass = countCallsInSameClass(references, clazz);
+  const globalCalls = getGlobalCalls(references, clazz);
+
+  smellyMethod.callsList = {
+    callsInSame: callsInSameClass,
+    callsGlob: globalCalls,
+  };
+  smellyMethod.callsCount = references.length;
+}
+
+
+analyzeProjectFiles();
+createNewClassesFromDataClumpsList(Data_Clumps_List);
+
+console.log(`found ${Data_Clumps_List.length} Dataclumps`);
+
+writeFileSync(
+  "./src/output/jsonDclumps/Data_Clumps_List.json",
+  JSON.stringify(Data_Clumps_List, null, 2)
+);
+
+import { ClassDeclaration, Project, Scope } from "ts-morph";
+import {
+  DataClumpsList,
+  SmellyMethods,
+  ParameterInfo,
+  NewClassInfo,
+} from "../utils/Interfaces";
+import { existsSync } from "fs";
+import { refactorMethods } from "./refactorDclumps";
+const project = new Project();
+const outputPath = "./src/output/extractedClasses/";
+
+export function createNewClassesFromDataClumpsList(
+  dataClumpsList: DataClumpsList[]
+) {
+  dataClumpsList.forEach((smellymethodGroup) => {
+    createNewClass(smellymethodGroup);
+  });
+
+  project.saveSync();
+}
+
+function createNewClass(smellymethodGroup) {
+  const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
+  let newClassName = getNewClassName(leastParameterMethod);
+  const fileName = generateUniqueFileName(
+    leastParameterMethod.classInfo.className
+  );
+
+  const newClassDeclaration = createAndGetNewClass(
+    newClassName,
+    fileName,
+    leastParameterMethod
+  );
+  const newClassInfo = exportNewFileData(
+    newClassDeclaration,
+    fileName,
+    leastParameterMethod.methodInfo.parameters
+  );
+  refactorMethods(
+    newClassInfo,
+    leastParameterMethod,
+    smellymethodGroup,
+    project
+  );
+  console.log(
+    `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
+  );
+}
+
+function getMethodWithLeastParameters(
+  dataClumpsList: DataClumpsList
+): SmellyMethods {
+  // Assuming dataClumpsList.smellyMethods is not undefined
+  return dataClumpsList.smellyMethods!.reduce((leastMethod, currentMethod) => {
+    return currentMethod.methodInfo.parameters.length <
+      leastMethod.methodInfo.parameters.length
+      ? currentMethod
+      : leastMethod;
+  });
+}
+
+function getNewClassName(leastParameterMethod) {
+  return leastParameterMethod.methodInfo.parameters
+    .map(
+      (parameter) =>
+        parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1)
+    )
+    .join("");
+}
+
+function generateUniqueFileName(baseName: string): string {
+  let counter = 0;
+  let fileName = `${baseName}.ts`;
+
+  while (existsSync(`${outputPath}${fileName}`)) {
+    counter++;
+    fileName = `${baseName}${counter}.ts`;
+  }
+
+  return fileName;
+}
+
+function createAndGetNewClass(newClassName, fileName, leastParameterMethod) {
+  const newClassDeclaration = initializeNewClass(fileName, newClassName);
+  generateClassVariables(leastParameterMethod, newClassDeclaration);
+  generateConstructor(leastParameterMethod, newClassDeclaration);
+  generateGettersAndSetters(leastParameterMethod, newClassDeclaration);
+
+  return newClassDeclaration;
+}
+
+function initializeNewClass(fileName, className) {
+  const filePath = outputPath + fileName;
+  const newClassFile = project.createSourceFile(filePath);
+  return newClassFile.addClass({ name: className, isExported: true });
+}
+
+function generateClassVariables(
+  smellyMethod: SmellyMethods,
+  newClassDeclaration: ClassDeclaration
+) {
+  smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
+    newClassDeclaration.addProperty({
+      name: parameter.name,
+      type: parameter.type,
+      scope: Scope.Private,
+    });
+  });
+}
+
+function generateConstructor(
+  smellyMethod: SmellyMethods,
+  newClassDeclaration: ClassDeclaration
+) {
+  const constructorDeclaration = newClassDeclaration.addConstructor();
+
+  smellyMethod.methodInfo.parameters.forEach(
+    (parameter: ParameterInfo, index: number) => {
+      constructorDeclaration.addParameter({
+        name: parameter.name,
+        type: parameter.type,
+      });
+
+      if (index === 0) {
+        constructorDeclaration.setBodyText((writer) =>
+          writer.write(`this.${parameter.name} = ${parameter.name};`)
+        );
+      } else {
+        constructorDeclaration.addStatements((writer) =>
+          writer.write(`this.${parameter.name} = ${parameter.name};`)
+        );
+      }
+    }
+  );
+}
+
+function generateGettersAndSetters(
+  smellyMethod: SmellyMethods,
+  newClassDeclaration: ClassDeclaration
+) {
+  smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
+    newClassDeclaration.addGetAccessor({
+      name:
+        "get" +
+        parameter.name.charAt(0).toUpperCase() +
+        parameter.name.slice(1),
+      returnType: parameter.type,
+      statements: `return this.${parameter.name};`,
+    });
+
+    newClassDeclaration.addSetAccessor({
+      name:
+        "set" +
+        parameter.name.charAt(0).toUpperCase() +
+        parameter.name.slice(1),
+      parameters: [{ name: parameter.name, type: parameter.type }],
+      statements: `this.${parameter.name} = ${parameter.name};`,
+    });
+  });
+}
+
+function exportNewFileData(
+  newClassDeclaration: ClassDeclaration,
+  fileName: string,
+  parameters: ParameterInfo[]
+): NewClassInfo {
+  const filePath = outputPath + fileName;
+  return {
+    className: newClassDeclaration.getName(),
+    filepath: filePath,
+    parameters: parameters,
+  };
+}
