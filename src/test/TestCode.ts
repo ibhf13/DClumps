@@ -24,6 +24,8 @@ class test1 {
     paraX;
     //geschachtelet binaryExpression
     paraX = (paraY = paraY + paraZ) + 10;
+    if (paraString) {
+    }
   }
   //
   public normalMethod(): void {

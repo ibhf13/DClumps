@@ -1,4 +1,10 @@
-import { Project, SourceFile, SyntaxKind } from "ts-morph";
+import {
+  BinaryExpression,
+  Identifier,
+  Project,
+  SourceFile,
+  SyntaxKind,
+} from "ts-morph";
 import * as path from "path";
 import {
   DataClumpsList,
@@ -179,19 +185,36 @@ function updateMethodBody(newClassInfo, method, commonParameters) {
   const binaryExpressions = method.getDescendantsOfKind(
     SyntaxKind.BinaryExpression
   );
+  method
+    .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+    .forEach((expressionStatement) => {
+      const expression = expressionStatement.getExpression();
 
-  for (let i = binaryExpressions.length - 1; i >= 0; i--) {
-    const binaryExpression = binaryExpressions[i];
-    const newExpression = processBinaryExpression(
-      binaryExpression,
-      instance,
-      newClassInfo
-    );
-    console.log(
-      `Replacing: ${binaryExpression.getText()} with: ${newExpression}`
-    );
-    binaryExpression.replaceWithText(newExpression);
-  }
+      if (expression instanceof BinaryExpression) {
+        for (let i = binaryExpressions.length - 1; i >= 0; i--) {
+          const binaryExpression = binaryExpressions[i];
+          const newExpression = processBinaryExpression(
+            binaryExpression,
+            instance,
+            newClassInfo
+          );
+          console.log(
+            `Replacing: ${binaryExpression.getText()} with: ${newExpression}`
+          );
+          binaryExpression.replaceWithText(newExpression);
+        }
+      } else {
+        const identifier = expression as Identifier;
+        const paramName = identifier.getText();
+        if (isCommonParmeter(paramName, newClassInfo.parameters)) {
+          const getterExpression = `${instance}.get${getCamelCase(
+            paramName
+          )}()`;
+          console.log(`Replacing: ${paramName} with: ${getterExpression}`);
+          identifier.replaceWithText(getterExpression);
+        }
+      }
+    });
 
   for (const param of commonParameters) {
     console.log(`Removing common parameter: ${param.getName()}`);
