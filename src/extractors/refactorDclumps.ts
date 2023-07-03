@@ -123,60 +123,74 @@ function updateMethodParameter(newClassInfo: NewClassInfo, method) {
   return commonParameters;
 }
 
-function updateMethodBody(
-  newClassInfo: NewClassInfo,
-  method,
-  commonParameters
-) {
+function processLeftSide(leftText, instance, newClassInfo) {
+  if (isCommonParmeter(leftText, newClassInfo.parameters)) {
+    return `${instance}.set${getCamelCase(leftText)}`;
+  }
+
+  return leftText;
+}
+
+function processRightSide(rightText, instance, newClassInfo) {
+  if (isCommonParmeter(rightText, newClassInfo.parameters)) {
+    return `${instance}.get${getCamelCase(rightText)}()`;
+  }
+
+  return rightText;
+}
+
+function processBinaryExpression(binaryExpression, instance, newClassInfo) {
+  const left = binaryExpression.getLeft();
+  const right = binaryExpression.getRight();
+  let leftText = left.getText();
+  let rightText = right.getText();
+
+  // Handle nested binary expressions
+  if (right.getKind() === SyntaxKind.BinaryExpression) {
+    rightText = processBinaryExpression(right, instance, newClassInfo);
+  }
+
+  // Determine if the expression is an assignment
+  const isAssignment =
+    binaryExpression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
+
+  if (isAssignment) {
+    leftText = processLeftSide(leftText, instance, newClassInfo);
+    rightText = processRightSide(rightText, instance, newClassInfo);
+    return `${leftText}(${rightText})`; // Don't include the "=" operator in the updated expression.
+  } else {
+    // For other binary expressions, both sides should use a getter
+    if (isCommonParmeter(leftText, newClassInfo.parameters)) {
+      leftText = `${instance}.get${getCamelCase(leftText)}()`;
+    }
+    if (isCommonParmeter(rightText, newClassInfo.parameters)) {
+      rightText = `${instance}.get${getCamelCase(rightText)}()`;
+    }
+    return `${leftText} ${binaryExpression
+      .getOperatorToken()
+      .getText()} ${rightText}`;
+  }
+}
+
+function updateMethodBody(newClassInfo, method, commonParameters) {
   const instance = `${newClassInfo.className}Instance`;
   console.log(`Method instance: ${instance}`);
 
-  // First pass: collect all binary expressions and their replacements
-  const replacements = [];
   const binaryExpressions = method.getDescendantsOfKind(
     SyntaxKind.BinaryExpression
   );
 
-  // Start from innermost BinaryExpressions
   for (let i = binaryExpressions.length - 1; i >= 0; i--) {
     const binaryExpression = binaryExpressions[i];
-    const left = binaryExpression.getLeft();
-    const right = binaryExpression.getRight();
-
-    if (
-      isCommonParmeter(left.getText(), newClassInfo.parameters) ||
-      isCommonParmeter(right.getText(), newClassInfo.parameters)
-    ) {
-      console.log(`Binary expression: ${binaryExpression.getText()}`);
-      let replacement;
-      console.log("right---------------------\n", right.getText());
-      console.log("left---------------------\n", left.getText());
-
-      if (isCommonParmeter(right.getText(), newClassInfo.parameters)) {
-        replacement = `${left.getText()} = ${instance}.get${getCamelCase(
-          right.getText()
-        )}()`;
-        console.log(`Replacement: ${replacement}`);
-      }
-      if (isCommonParmeter(left.getText(), newClassInfo.parameters)) {
-        console.log("setright---------------------\n", right.getText());
-
-        replacement = `${instance}.set${getCamelCase(
-          left.getText()
-        )}(${right.getText()})`;
-        console.log(`Replacement: ${replacement}`);
-      }
-
-      replacements.push({ binaryExpression, replacement });
-    }
-  }
-
-  // Second pass: do the replacements
-  for (const { binaryExpression, replacement } of replacements) {
-    console.log(
-      `Replacing: ${binaryExpression.getText()} with: ${replacement}`
+    const newExpression = processBinaryExpression(
+      binaryExpression,
+      instance,
+      newClassInfo
     );
-    binaryExpression.replaceWithText(replacement);
+    console.log(
+      `Replacing: ${binaryExpression.getText()} with: ${newExpression}`
+    );
+    binaryExpression.replaceWithText(newExpression);
   }
 
   for (const param of commonParameters) {

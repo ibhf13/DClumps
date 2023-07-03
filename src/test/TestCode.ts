@@ -16,8 +16,14 @@ class test2 {
 
 class test1 {
   public smellyMethod2(paraX: number, paraString: string, paraY: number): void {
-    let tempString: string = paraString;
-    paraX = (paraY = paraY + 8) + 10;
+    //variableDeclarationstatment
+    let tesmstring2: string = paraString;
+    let tempString: string = (paraString = paraString + "hi") + paraString;
+    let paraZ = 9;
+    //expressionStatement
+    paraX;
+    //geschachtelet binaryExpression
+    paraX = (paraY = paraY + paraZ) + 10;
   }
   //
   public normalMethod(): void {
