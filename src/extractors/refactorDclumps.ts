@@ -27,6 +27,7 @@ export function refactorMethods(
 
   // Refactor the least parameter method.
   refactorLeastParameterMethod(newClassInfo, leastParameterMethod, project);
+  project.saveSync();
 }
 
 function deleteLeastParameterMethod(
@@ -120,9 +121,12 @@ function updateMethodParameter(newClassInfo: NewClassInfo, method) {
       type: param.getType().getText(),
     });
   });
+  const instanceName = `${newClassInfo.className
+    .charAt(0)
+    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
 
   method.addParameter({
-    name: `${newClassInfo.className}Instance`,
+    name: instanceName,
     type: newClassInfo.className,
   });
 
@@ -179,7 +183,10 @@ function processBinaryExpression(binaryExpression, instance, newClassInfo) {
 }
 
 function updateMethodBody(newClassInfo, method, commonParameters) {
-  const instance = `${newClassInfo.className}Instance`;
+  const instance = `${newClassInfo.className
+    .charAt(0)
+    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
+
   console.log(`Method instance: ${instance}`);
 
   const binaryExpressions = method.getDescendantsOfKind(
@@ -226,46 +233,6 @@ function getCamelCase(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-// function capitalizeFirstLetter(string) {
-//   return string.charAt(0).toUpperCase() + string.slice(1);
-// }
-
-// function useGetter(instance: string, param: string): string {
-//   return `${instance}.get${param.charAt(0).toUpperCase() + param.slice(1)}()`;
-// }
-//
-// function getSmellyMethod(file, methodName: string) {
-//   return file.getFunction(methodName);
-// }
-//
-// function parseFileToAst(filepath: string, project: Project): SourceFile {
-//   return project.addSourceFileAtPath(filepath);
-// }
-// // 4.3.4 Refactor the old parameters
-// function refactorParameters(method: any, oldParams: ParameterInfo[]) {
-//   const newParams = method.getParameters();
-
-//   oldParams.forEach((oldParam, index) => {
-//     const correspondingNewParam = newParams[index];
-
-//     if (correspondingNewParam) {
-//       // 4.3.4.1 If the parameter has a corresponding one in the new method, replace it
-//       correspondingNewParam.replaceWithText(oldParam.name);
-//     } else {
-//       // 4.3.4.2 If there is no corresponding parameter in the new method, add it to the end
-//       method.addParameter({
-//         name: oldParam.name,
-//         type: oldParam.type,
-//       });
-//     }
-//   });
-
-//   // If there are more parameters in the new method, remove them
-//   for (let i = oldParams.length; i < newParams.length; i++) {
-//     newParams[i].remove();
-//   }
-// }
-
 // // 4.3.5 Update variables/references within the method using the generated getters and setters.
 // function updateMethodReferences(
 //   method: any,
@@ -311,21 +278,4 @@ function getCamelCase(name) {
 //         }
 //       });
 //     });
-// }
-
-// // Given a method and a new class info, refactor the method to use the new class
-// export function refactorMethod(
-//   smellyMethod: SmellyMethods,
-//   newClassInfo: NewClassInfo,
-//   project: Project
-// ): void {
-//   const file = parseFileToAst(smellyMethod.filepath, project);
-//   importNewClass(file, newClassInfo);
-
-//   const smellyMethod123 = getSmellyMethod(file, methodInfo.methodName);
-
-//   refactorParameters(smellyMethod, methodInfo.parameters, newClassInfo);
-//   updateMethodReferences(smellyMethod, methodInfo.parameters, newClassInfo);
-
-//   file.saveSync();
 // }
