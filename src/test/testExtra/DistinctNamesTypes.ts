@@ -11,6 +11,7 @@ class Parameters2 {
   public smellyMethod2(
     paraX: number,
     paraY: number,
+    paraTest: boolean,
     paraString: string
   ): void {}
 }

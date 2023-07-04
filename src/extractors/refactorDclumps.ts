@@ -1,10 +1,4 @@
-import {
-  BinaryExpression,
-  Identifier,
-  Project,
-  SourceFile,
-  SyntaxKind,
-} from "ts-morph";
+import { BinaryExpression, Project, SourceFile, SyntaxKind } from "ts-morph";
 import * as path from "path";
 import {
   DataClumpsList,
@@ -17,46 +11,46 @@ import {
 export function refactorMethods(
   newClassInfo: NewClassInfo,
   leastParameterMethod: SmellyMethods,
-  smellymethodGroup: SmellyMethods,
+  methodGroup: DataClumpsList,
   project: Project
 ) {
-  //   let smellyMethodGroupCopy = deleteLeastParameterMethod(
-  //     leastParameterMethod,
-  //     smellymethodGroup
-  //   );
+  refactorSelectedMethod(newClassInfo, leastParameterMethod, project);
+  const methodGroupCopy = removeSelectedMethod(
+    leastParameterMethod,
+    methodGroup
+  );
 
-  // Refactor the least parameter method.
-  refactorLeastParameterMethod(newClassInfo, leastParameterMethod, project);
+  for (const method of methodGroupCopy) {
+    refactorSelectedMethod(newClassInfo, method, project);
+    //console.log(method.methodInfo, method.classInfo.className);
+  }
+
   project.saveSync();
 }
 
-function deleteLeastParameterMethod(
+function removeSelectedMethod(
   leastParameterMethod: SmellyMethods,
-  smellymethodGroupCopy: DataClumpsList
+  methodGroupCopy: DataClumpsList
 ): SmellyMethods[] {
-  // Filter out the leastParameterMethod
-  return smellymethodGroupCopy.smellyMethods.filter(
-    (method) =>
-      method.methodInfo.methodName !==
-      leastParameterMethod.methodInfo.methodName
+  return methodGroupCopy.smellyMethods.filter(
+    (method) => method !== leastParameterMethod
   );
 }
 
-function isCommonParmeter(
+function parameterExists(
   paramName: string,
   newClassParams: ParameterInfo[]
 ): boolean {
   return newClassParams.some((param) => param.name === paramName);
 }
 
-function getImportPath(from: string, to: string) {
+function determineImportPath(from: string, to: string) {
   let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
 
   if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
     relativePath = "./" + relativePath;
   }
 
-  // replace .ts or .js at the end of relative path
   relativePath = relativePath.replace(".ts", "");
 
   return relativePath;
@@ -64,7 +58,7 @@ function getImportPath(from: string, to: string) {
 
 function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
   const filePath = file.getFilePath();
-  const correctPath = getImportPath(filePath, newClassInfo.filepath);
+  const correctPath = determineImportPath(filePath, newClassInfo.filepath);
 
   const existingImport = file.getImportDeclaration(
     (declaration) =>
@@ -82,101 +76,85 @@ function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
   }
 }
 
-function refactorLeastParameterMethod(
+function refactorSelectedMethod(
   newClassInfo: NewClassInfo,
-  leastParameterMethod: SmellyMethods,
+  refactoredMethod: SmellyMethods,
   project: Project
 ) {
-  console.log(
-    `Refactoring ${leastParameterMethod.methodInfo.methodName} \n in ${leastParameterMethod.classInfo.filepath} `
-  );
-
   const sourceFile = project.addSourceFileAtPath(
-    leastParameterMethod.classInfo.filepath
+    refactoredMethod.classInfo.filepath
   );
 
   importNewClass(sourceFile, newClassInfo);
 
   const method = sourceFile
-    .getClass(leastParameterMethod.classInfo.className)
-    .getMethod(leastParameterMethod.methodInfo.methodName);
+    .getClass(refactoredMethod.classInfo.className)
+    .getMethod(refactoredMethod.methodInfo.methodName);
 
-  const commonParameters = updateMethodParameter(newClassInfo, method);
-  updateMethodBody(newClassInfo, method, commonParameters);
+  const sharedParameters = updateMethodParameters(newClassInfo, method);
+  updateMethodBody(newClassInfo, method, sharedParameters);
 }
 
-function updateMethodParameter(newClassInfo: NewClassInfo, method) {
-  const methodParams = method.getParameters();
-
-  const commonParameters = methodParams.filter((param) =>
-    isCommonParmeter(param.getName(), newClassInfo.parameters)
-  );
-  const uncommonParameters = methodParams.filter(
-    (param) => !isCommonParmeter(param.getName(), newClassInfo.parameters)
+function updateMethodParameters(newClassInfo: NewClassInfo, method) {
+  const methodParameters = method.getParameters();
+  const sharedParameters = methodParameters.filter((param) =>
+    parameterExists(param.getName(), newClassInfo.parameters)
   );
 
-  uncommonParameters.forEach((param) => {
+  const instanceName = getInstanceName(newClassInfo);
+
+  // Check if the parameter is already there
+  const alreadyHasInstance = methodParameters.some(
+    (param) => param.getName() === instanceName
+  );
+
+  // Only add the instance if it does not already exist
+  if (!alreadyHasInstance) {
     method.insertParameter(0, {
-      name: param.getName(),
-      type: param.getType().getText(),
+      name: instanceName,
+      type: newClassInfo.className,
     });
-  });
-  const instanceName = `${newClassInfo.className
+  }
+
+  return sharedParameters;
+}
+
+function getInstanceName(newClassInfo: NewClassInfo) {
+  const instance = `${newClassInfo.className
     .charAt(0)
     .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
-
-  method.addParameter({
-    name: instanceName,
-    type: newClassInfo.className,
-  });
-
-  return commonParameters;
+  return instance;
 }
 
-function processLeftSide(leftText, instance, newClassInfo) {
-  if (isCommonParmeter(leftText, newClassInfo.parameters)) {
-    return `${instance}.set${getCamelCase(leftText)}`;
-  }
-
-  return leftText;
-}
-
-function processRightSide(rightText, instance, newClassInfo) {
-  if (isCommonParmeter(rightText, newClassInfo.parameters)) {
-    return `${instance}.get${getCamelCase(rightText)}()`;
-  }
-
-  return rightText;
-}
-
-function processBinaryExpression(binaryExpression, instance, newClassInfo) {
-  const left = binaryExpression.getLeft();
-  const right = binaryExpression.getRight();
+function processExpression(expression, instance, newClassInfo) {
+  const left = expression.getLeft();
+  const right = expression.getRight();
   let leftText = left.getText();
   let rightText = right.getText();
 
-  // Handle nested binary expressions
-  if (right.getKind() === SyntaxKind.BinaryExpression) {
-    rightText = processBinaryExpression(right, instance, newClassInfo);
+  if (right instanceof BinaryExpression) {
+    rightText = processExpression(right, instance, newClassInfo);
   }
 
-  // Determine if the expression is an assignment
-  const isAssignment =
-    binaryExpression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
+  const assignment =
+    expression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
+  if (assignment) {
+    if (parameterExists(leftText, newClassInfo.parameters)) {
+      leftText = `${instance}.set${toCamelCase(leftText)}`;
+    }
 
-  if (isAssignment) {
-    leftText = processLeftSide(leftText, instance, newClassInfo);
-    rightText = processRightSide(rightText, instance, newClassInfo);
-    return `${leftText}(${rightText})`; // Don't include the "=" operator in the updated expression.
+    if (parameterExists(rightText, newClassInfo.parameters)) {
+      rightText = `${instance}.get${toCamelCase(rightText)}()`;
+    }
+    return `${leftText}(${rightText})`;
   } else {
-    // For other binary expressions, both sides should use a getter
-    if (isCommonParmeter(leftText, newClassInfo.parameters)) {
-      leftText = `${instance}.get${getCamelCase(leftText)}()`;
+    if (parameterExists(leftText, newClassInfo.parameters)) {
+      leftText = `${instance}.get${toCamelCase(leftText)}()`;
     }
-    if (isCommonParmeter(rightText, newClassInfo.parameters)) {
-      rightText = `${instance}.get${getCamelCase(rightText)}()`;
+    if (parameterExists(rightText, newClassInfo.parameters)) {
+      rightText = `${instance}.get${toCamelCase(rightText)}()`;
     }
-    return `${leftText} ${binaryExpression
+    return `${leftText} ${expression
       .getOperatorToken()
       .getText()} ${rightText}`;
   }
@@ -185,113 +163,44 @@ function processBinaryExpression(binaryExpression, instance, newClassInfo) {
 function updateMethodBody(
   newClassInfo: NewClassInfo,
   method,
-  commonParameters
+  sharedParameters
 ) {
-  const instance = `${newClassInfo.className
-    .charAt(0)
-    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
+  const instance = getInstanceName(newClassInfo);
 
-  console.log(`Method instance: ${instance}`);
-
-  const binaryExpressions = method.getDescendantsOfKind(
-    SyntaxKind.BinaryExpression
-  );
+  const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
   method
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
     .forEach((expressionStatement) => {
       const expression = expressionStatement.getExpression();
 
       if (expression instanceof BinaryExpression) {
-        for (let i = binaryExpressions.length - 1; i >= 0; i--) {
-          const binaryExpression = binaryExpressions[i];
-          const newExpression = processBinaryExpression(
+        expressions.reverse().forEach((binaryExpression) => {
+          const newExpression = processExpression(
             binaryExpression,
             instance,
             newClassInfo
           );
-          console.log(
-            `Replacing: ${binaryExpression.getText()} with: ${newExpression}`
-          );
           binaryExpression.replaceWithText(newExpression);
-        }
+        });
       }
     });
 
-  for (const param of commonParameters) {
-    console.log(`Removing common parameter: ${param.getName()}`);
-    param.remove();
-  }
-  updateMethodBodywithGetter(newClassInfo, method, newClassInfo.parameters);
+  sharedParameters.forEach((param) => param.remove());
+  updateMethodWithGetter(newClassInfo, method);
 }
 
-function updateMethodBodywithGetter(
-  newClassInfo: NewClassInfo,
-  method,
-  commonParameters: ParameterInfo[]
-) {
-  const instance = `${newClassInfo.className
-    .charAt(0)
-    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
-
-  console.log(`Method instance: ${instance}`);
+function updateMethodWithGetter(newClassInfo: NewClassInfo, method) {
+  const instance = getInstanceName(newClassInfo);
 
   method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((identifier) => {
     const paramName = identifier.getText();
-    if (isCommonParmeter(paramName, newClassInfo.parameters)) {
-      const getterExpression = `${instance}.get${getCamelCase(paramName)}()`;
-      console.log(`Replacing: ${paramName} with: ${getterExpression}`);
+    if (parameterExists(paramName, newClassInfo.parameters)) {
+      const getterExpression = `${instance}.get${toCamelCase(paramName)}()`;
       identifier.replaceWithText(getterExpression);
     }
   });
 }
 
-function getCamelCase(name) {
+function toCamelCase(name) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
-
-// // 4.3.5 Update variables/references within the method using the generated getters and setters.
-// function updateMethodReferences(
-//   method: any,
-//   oldParams: ParameterInfo[],
-//   newClassInfo: NewClassInfo
-// ) {
-//   const methodBody = method.getBody();
-
-//   methodBody
-//     .getDescendantsOfKind(SyntaxKind.Identifier)
-//     .forEach((identifier) => {
-//       const identifierName = identifier.getText();
-
-//       oldParams.forEach((oldParam) => {
-//         if (identifierName === oldParam.name) {
-//           // Replace the identifier with a getter or setter
-//           // If the identifier is on the left side of an assignment, use a setter
-//           if (
-//             identifier.getParentIfKind(SyntaxKind.PropertyAccessExpression) &&
-//             identifier
-//               .getParentIfKind(SyntaxKind.PropertyAccessExpression)
-//               .getChildren()[2] === identifier &&
-//             identifier.getParentIfKind(SyntaxKind.BinaryExpression) &&
-//             identifier
-//               .getParentIfKind(SyntaxKind.BinaryExpression)
-//               .getOperatorToken()
-//               .getKind() === SyntaxKind.EqualsToken
-//           ) {
-//             const assignment = identifier.getParentIfKind(
-//               SyntaxKind.BinaryExpression
-//             );
-//             const newValue = assignment.getRight().getText();
-
-//             assignment.replaceWithText(
-//               `${newClassInfo.className}.${oldParam.name} = ${newValue}`
-//             );
-//           } else {
-//             // Otherwise, use a getter
-//             identifier.replaceWithText(
-//               `${newClassInfo.className}.${oldParam.name}`
-//             );
-//           }
-//         }
-//       });
-//     });
-// }

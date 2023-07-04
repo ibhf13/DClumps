@@ -19,7 +19,7 @@ import { createNewClassesFromDataClumpsList } from "./extractNewClasses";
 let codeAnalyzerProject = new Project();
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
-const MIN_MATCHES = 3;
+const MIN_MATCHES = 2;
 
 const projectDirectory = "./src";
 codeAnalyzerProject.addSourceFilesAtPaths(`${projectDirectory}/**/*.ts`);

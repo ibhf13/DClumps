@@ -1,7 +1,6 @@
 class test2 {
   public smellyMethod1(
     paraX: number,
-    paraY: number,
     paraNormal: string,
     paraString: string
   ): void {
@@ -11,6 +10,16 @@ class test2 {
 
   public normalMethod(): void {
     this.smellyMethod1(10, 5, "dummy string1", "dummy string2");
+  }
+}
+class test3 {
+  public smellyMethod1(paraX: number, paraString: string): void {
+    let tempString: string = paraString;
+    paraX = paraY + 10;
+  }
+
+  public normalMethod(): void {
+    this.smellyMethod1(10, "dummy string2");
   }
 }
 
