@@ -182,7 +182,11 @@ function processBinaryExpression(binaryExpression, instance, newClassInfo) {
   }
 }
 
-function updateMethodBody(newClassInfo, method, commonParameters) {
+function updateMethodBody(
+  newClassInfo: NewClassInfo,
+  method,
+  commonParameters
+) {
   const instance = `${newClassInfo.className
     .charAt(0)
     .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
@@ -210,16 +214,6 @@ function updateMethodBody(newClassInfo, method, commonParameters) {
           );
           binaryExpression.replaceWithText(newExpression);
         }
-      } else {
-        const identifier = expression as Identifier;
-        const paramName = identifier.getText();
-        if (isCommonParmeter(paramName, newClassInfo.parameters)) {
-          const getterExpression = `${instance}.get${getCamelCase(
-            paramName
-          )}()`;
-          console.log(`Replacing: ${paramName} with: ${getterExpression}`);
-          identifier.replaceWithText(getterExpression);
-        }
       }
     });
 
@@ -227,6 +221,28 @@ function updateMethodBody(newClassInfo, method, commonParameters) {
     console.log(`Removing common parameter: ${param.getName()}`);
     param.remove();
   }
+  updateMethodBodywithGetter(newClassInfo, method, newClassInfo.parameters);
+}
+
+function updateMethodBodywithGetter(
+  newClassInfo: NewClassInfo,
+  method,
+  commonParameters: ParameterInfo[]
+) {
+  const instance = `${newClassInfo.className
+    .charAt(0)
+    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
+
+  console.log(`Method instance: ${instance}`);
+
+  method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((identifier) => {
+    const paramName = identifier.getText();
+    if (isCommonParmeter(paramName, newClassInfo.parameters)) {
+      const getterExpression = `${instance}.get${getCamelCase(paramName)}()`;
+      console.log(`Replacing: ${paramName} with: ${getterExpression}`);
+      identifier.replaceWithText(getterExpression);
+    }
+  });
 }
 
 function getCamelCase(name) {
