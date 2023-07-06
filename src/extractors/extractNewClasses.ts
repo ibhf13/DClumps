@@ -7,6 +7,7 @@ import {
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
 import { refactorMethods } from "./refactorDclumps";
+import { updateMethodReferences } from "./refactorCalls";
 const project = new Project();
 const outputPath = "./src/output/extractedClasses/";
 

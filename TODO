@@ -1,0 +1,13 @@
+1. exclude node_modules
+2. if the class Exist
+3. handle inheritance
+4. handle interfaces
+5. handle intersect
+6. test Project
+7. acceptance Criteria
+
+current issues:
+handling interfaces if the methode implement interfaces do somthing
+handling inheritance : Similar Methods in Parent/Child Classes:
+If there are methods with similar parameters in parent and child classes (in case of inheritance),
+the code should handle in these cases correctly.

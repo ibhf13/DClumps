@@ -1,3 +1,6 @@
+this is the first part of my project
+main.ts
+
 import {
   ClassDeclaration,
   ParameterDeclaration,
@@ -273,6 +276,8 @@ writeFileSync(
   "./src/output/jsonDclumps/Data_Clumps_List.json",
   JSON.stringify(Data_Clumps_List, null, 2)
 );
+
+extractNewClasses.ts: 
 
 import { ClassDeclaration, Project, Scope } from "ts-morph";
 import {
