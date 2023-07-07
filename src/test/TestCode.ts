@@ -1,5 +1,5 @@
 class test2 {
-  public smellyMethod1(
+  public smellyMethod1000(
     paraX: number,
     paraNormal: string,
     paraString: string
@@ -9,7 +9,7 @@ class test2 {
   }
 
   public normalMethod(): void {
-    this.smellyMethod1(10, 5, "dummy string1", "dummy string2");
+    this.smellyMethod1000(10, "dummy string1", "dummy string2");
   }
 }
 class test3 {
@@ -24,7 +24,11 @@ class test3 {
 }
 
 class test1 {
-  public smellyMethod2(paraX: number, paraString: string, paraY: number): void {
+  public smellyMethod234(
+    paraX: number,
+    paraString: string,
+    paraY: number
+  ): void {
     //variableDeclarationstatment
     let tesmstring2: string = paraString;
     let tempString: string = (paraString = paraString + "hi") + paraString;
@@ -42,7 +46,7 @@ class test1 {
   //
   public normalMethod(): void {
     let test = new test2();
-    test.smellyMethod1(10, 5, "w", "x");
-    this.smellyMethod2(10, "dummy string1", 6);
+    test.smellyMethod1000(10, "w", "x");
+    this.smellyMethod234(10, "dummy string1", 6);
   }
 }

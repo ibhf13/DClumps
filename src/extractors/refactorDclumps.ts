@@ -2,6 +2,7 @@ import {
   BinaryExpression,
   CallExpression,
   Project,
+  PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
   ts,
@@ -9,12 +10,12 @@ import {
 import * as path from "path";
 import {
   DataClumpsList,
+  GlobalCalls,
   MethodInfo,
   NewClassInfo,
   ParameterInfo,
   SmellyMethods,
 } from "../utils/Interfaces";
-import { updateMethodReferences } from "./refactorCalls";
 
 export function refactorMethods(
   newClassInfo: NewClassInfo,
@@ -102,11 +103,22 @@ function refactorSelectedMethod(
   const method = classDeclaration.getMethod(
     refactoredMethod.methodInfo.methodName
   );
+  const allMethods = classDeclaration.getMethods();
 
   const sharedParameters = updateMethodParameters(newClassInfo, method);
   updateMethodBody(newClassInfo, method, sharedParameters);
 
-  const allMethods = classDeclaration.getMethods();
+  refactorMethodCallsUsingThis(newClassInfo, refactoredMethod, allMethods);
+  refactorMethodInOtherFile(newClassInfo, refactoredMethod, sourceFile);
+
+  project.saveSync();
+}
+
+function refactorMethodCallsUsingThis(
+  newClassInfo: NewClassInfo,
+  refactoredMethod: SmellyMethods,
+  allMethods
+) {
   const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
 
   allMethods.forEach((meth) => {
@@ -119,19 +131,85 @@ function refactorSelectedMethod(
         `this.${refactoredMethod.methodInfo.methodName}`
       ) {
         const argumentsList = callExpression.getArguments();
-
         let newClassArguments = [];
         let otherArguments = [];
-        // Check for common and uncommon parameters
+
+        // Check for existing newClass instance in arguments
+        const existingNewClassInstance = argumentsList.find((arg) =>
+          arg.getText().startsWith(`new ${newClassInfo.className}`)
+        );
+
+        // Only process common and uncommon parameters if newClass instance doesn't already exist
+        if (!existingNewClassInstance) {
+          for (let i = 0; i < argumentsList.length; i++) {
+            let argumentsType = argumentsList[i].getType().getLiteralValue();
+            let found = false;
+
+            for (let j = 0; j < newClassParamTypes.length; j++) {
+              if (getType(argumentsType) === newClassParamTypes[j]) {
+                found = true;
+                newClassArguments.push(argumentsList[i].getText());
+                newClassParamTypes.splice(j, 1); // Remove common type to avoid duplication
+                break;
+              }
+            }
+
+            if (!found) {
+              otherArguments.push(argumentsList[i].getText());
+            }
+          }
+          const newArgument = `new ${
+            newClassInfo.className
+          }(${newClassArguments.join(", ")})`;
+          const updatedArgumentsList = [newArgument, ...otherArguments];
+
+          callExpression.replaceWithText(
+            `this.${
+              refactoredMethod.methodInfo.methodName
+            }(${updatedArgumentsList.join(", ")})`
+          );
+
+          //console.log(`Replaced arguments in ${meth.getName()}`);
+        }
+      }
+    });
+  });
+}
+
+function refactorMethodInOtherFile(
+  newClassInfo: NewClassInfo,
+  refactoredMethod: SmellyMethods,
+  callSourceFile: SourceFile
+) {
+  const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
+  const methodCallExpressions = callSourceFile.getDescendantsOfKind(
+    SyntaxKind.CallExpression
+  );
+
+  methodCallExpressions.forEach((callExpression) => {
+    const calledMethodName = callExpression.getExpression().getText();
+    if (
+      !calledMethodName.startsWith("this.") &&
+      calledMethodName.endsWith(`.${refactoredMethod.methodInfo.methodName}`)
+    ) {
+      const argumentsList = callExpression.getArguments();
+      let newClassArguments = [];
+      let otherArguments = [];
+
+      const existingNewClassInstance = argumentsList.find((arg) =>
+        arg.getText().startsWith(`new ${newClassInfo.className}`)
+      );
+
+      if (!existingNewClassInstance) {
         for (let i = 0; i < argumentsList.length; i++) {
-          let argumentsType = argumentsList[i].getType().getLiteralValue();
+          const argumentType = argumentsList[i].getType().getLiteralValue();
           let found = false;
 
           for (let j = 0; j < newClassParamTypes.length; j++) {
-            if (getType(argumentsType) === newClassParamTypes[j]) {
+            if (typeof argumentType === newClassParamTypes[j]) {
               found = true;
               newClassArguments.push(argumentsList[i].getText());
-              newClassParamTypes.splice(j, 1); // Remove common type to avoid duplication
+              newClassParamTypes.splice(j, 1);
               break;
             }
           }
@@ -140,24 +218,24 @@ function refactorSelectedMethod(
             otherArguments.push(argumentsList[i].getText());
           }
         }
+
         const newArgument = `new ${
           newClassInfo.className
         }(${newClassArguments.join(", ")})`;
         const updatedArgumentsList = [newArgument, ...otherArguments];
 
         callExpression.replaceWithText(
-          `this.${
+          `${calledMethodName.split(".")[0]}.${
             refactoredMethod.methodInfo.methodName
           }(${updatedArgumentsList.join(", ")})`
         );
 
-        console.log(`Replaced arguments in ${meth.getName()}`);
+        console.log(`Replaced arguments in ${callSourceFile.getFilePath()}`);
       }
-    });
+    }
   });
-
-  project.saveSync();
 }
+
 function getType(value: any): string {
   return typeof value;
 }
