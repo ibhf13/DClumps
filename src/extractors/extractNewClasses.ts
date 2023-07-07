@@ -7,36 +7,39 @@ import {
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
 import { refactorMethods } from "./refactorDclumps";
-import { updateMethodReferences } from "./refactorCalls";
+
 const project = new Project();
-const outputPath = "./src/output/extractedClasses/";
 
 export function createNewClassesFromDataClumpsList(
-  dataClumpsList: DataClumpsList[]
+  dataClumpsList: DataClumpsList[],
+  outputPath: string
 ) {
   dataClumpsList.forEach((smellymethodGroup) => {
-    createNewClass(smellymethodGroup);
+    createNewClass(smellymethodGroup, outputPath);
   });
 
   project.saveSync();
 }
 
-function createNewClass(smellymethodGroup) {
+function createNewClass(smellymethodGroup, outputPath: string) {
   const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
   let newClassName = getNewClassName(leastParameterMethod);
   const fileName = generateUniqueFileName(
-    leastParameterMethod.classInfo.className
+    leastParameterMethod.classInfo.className,
+    outputPath
   );
 
   const newClassDeclaration = createAndGetNewClass(
     newClassName,
     fileName,
-    leastParameterMethod
+    leastParameterMethod,
+    outputPath
   );
   const newClassInfo = exportNewFileData(
     newClassDeclaration,
     fileName,
-    leastParameterMethod.methodInfo.parameters
+    leastParameterMethod.methodInfo.parameters,
+    outputPath
   );
   refactorMethods(
     newClassInfo,
@@ -61,7 +64,7 @@ function getMethodWithLeastParameters(
   });
 }
 
-function getNewClassName(leastParameterMethod) {
+function getNewClassName(leastParameterMethod: SmellyMethods) {
   return leastParameterMethod.methodInfo.parameters
     .map(
       (parameter) =>
@@ -70,7 +73,7 @@ function getNewClassName(leastParameterMethod) {
     .join("");
 }
 
-function generateUniqueFileName(baseName: string): string {
+function generateUniqueFileName(baseName: string, outputPath: string): string {
   let counter = 0;
   let fileName = `${baseName}.ts`;
 
@@ -82,8 +85,17 @@ function generateUniqueFileName(baseName: string): string {
   return fileName;
 }
 
-function createAndGetNewClass(newClassName, fileName, leastParameterMethod) {
-  const newClassDeclaration = initializeNewClass(fileName, newClassName);
+function createAndGetNewClass(
+  newClassName: string,
+  fileName: string,
+  leastParameterMethod: SmellyMethods,
+  outputPath: string
+) {
+  const newClassDeclaration = initializeNewClass(
+    fileName,
+    newClassName,
+    outputPath
+  );
   generateClassVariables(leastParameterMethod, newClassDeclaration);
   generateConstructor(leastParameterMethod, newClassDeclaration);
   generateGettersAndSetters(leastParameterMethod, newClassDeclaration);
@@ -91,7 +103,11 @@ function createAndGetNewClass(newClassName, fileName, leastParameterMethod) {
   return newClassDeclaration;
 }
 
-function initializeNewClass(fileName, className) {
+function initializeNewClass(
+  fileName: string,
+  className: string,
+  outputPath: string
+) {
   const filePath = outputPath + fileName;
   const newClassFile = project.createSourceFile(filePath);
   return newClassFile.addClass({ name: className, isExported: true });
@@ -164,7 +180,8 @@ function generateGettersAndSetters(
 function exportNewFileData(
   newClassDeclaration: ClassDeclaration,
   fileName: string,
-  parameters: ParameterInfo[]
+  parameters: ParameterInfo[],
+  outputPath: string
 ): NewClassInfo {
   const filePath = outputPath + fileName;
   return {

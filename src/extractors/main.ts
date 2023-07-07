@@ -7,10 +7,14 @@ import { writeFileSync } from "fs";
 
 function main() {
   //initialize the date collection variables
-
   let codeAnalyzerProject = new Project();
   const MIN_MATCHES = 2;
-  let toAnalyzeProjectFolder: string = "./src/**/*.ts";
+  const toAnalyzeProjectFolder: string = "./src/**/*.ts";
+  const outputPath = "./src/output/extractedClasses/";
+
+  console.log(
+    `start analyzing  ${toAnalyzeProjectFolder} for data clumps Dataclumps \n...`
+  );
 
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
@@ -20,14 +24,15 @@ function main() {
     toAnalyzeProjectFolder,
     MIN_MATCHES
   );
-  createNewClassesFromDataClumpsList(dataClumpsList);
-
   console.log(`found ${dataClumpsList.length} Dataclumps`);
 
   writeFileSync(
     "./src/output/jsonDclumps/Data_Clumps_List.json",
     JSON.stringify(dataClumpsList, null, 2)
   );
+  console.log("\n\n\nStart refactoring \n...");
+
+  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
 }
 
 // Run the main function

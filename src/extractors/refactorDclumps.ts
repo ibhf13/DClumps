@@ -1,8 +1,6 @@
 import {
   BinaryExpression,
-  CallExpression,
   Project,
-  PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
   ts,
@@ -10,8 +8,6 @@ import {
 import * as path from "path";
 import {
   DataClumpsList,
-  GlobalCalls,
-  MethodInfo,
   NewClassInfo,
   ParameterInfo,
   SmellyMethods,
@@ -333,7 +329,7 @@ function updateMethodBody(
   sharedParameters.forEach((param) => param.remove());
   updateMethodWithGetter(newClassInfo, method);
 }
-
+//cant put type for method because of the finding the right statement wont work
 function updateMethodWithGetter(newClassInfo: NewClassInfo, method) {
   const instance = getInstanceName(newClassInfo);
 
@@ -346,6 +342,6 @@ function updateMethodWithGetter(newClassInfo: NewClassInfo, method) {
   });
 }
 
-function toCamelCase(name) {
+function toCamelCase(name: string) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
