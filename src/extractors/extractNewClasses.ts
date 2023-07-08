@@ -6,7 +6,7 @@ import {
   NewClassInfo,
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
-import { refactorMethods } from "./refactorDclumps";
+import { refactorMethods } from "./DataclumpsRefactoring";
 
 const project = new Project();
 

@@ -1,8 +1,3 @@
-export interface MethodInfo {
-  methodName: string;
-  parameters: ParameterInfo[];
-}
-
 export interface ParameterInfo {
   name: string;
   type: string;
@@ -14,17 +9,9 @@ export interface ClassInfo {
   filepath: string;
 }
 
-export interface NewClassInfo {
-  className: string;
-  filepath: string;
-  parameters: ParameterInfo[];
-}
-
-export interface SmellyMethods {
-  methodInfo: MethodInfo;
-  classInfo: ClassInfo;
+export interface CallsInfo {
   callsList?: CallsList;
-  callsCount?: number;
+  callsCount: number;
 }
 
 export interface CallsList {
@@ -37,6 +24,23 @@ export interface GlobalCalls {
   callsGlobCount: number;
 }
 
+export interface NewClassInfo {
+  className: string;
+  filepath: string;
+  parameters: ParameterInfo[];
+}
+
+export interface MethodInfo {
+  methodName: string;
+  parameters: ParameterInfo[];
+}
+
+export interface SmellyMethods {
+  methodInfo: MethodInfo;
+  classInfo: ClassInfo;
+  callsInfo: CallsInfo;
+}
+
 export interface FunctionInfo {
   functionFilePath: string;
   functionName: string;
@@ -46,16 +50,15 @@ export interface FunctionInfo {
 export interface SmellyFunction {
   functionInfo: FunctionInfo;
   callsList?: CallsList;
-  callsCount: number;
 }
-export interface smellyClassFieldGroup {
+export interface SmellyFields {
+  fieldParameter: ParameterInfo;
   classInfo: ClassInfo;
-  parameters: ParameterInfo[];
-  callsList?: CallsList;
-  callsCount: number;
+  callsInfo: CallsInfo;
 }
+
 export interface DataClumpsList {
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
-  smellyClassFieldGroup?: smellyClassFieldGroup[];
+  smellyClassFieldGroup?: SmellyFields[];
 }

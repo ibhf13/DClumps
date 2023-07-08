@@ -280,11 +280,13 @@ function storeMethodInfo(
   const smellyMethod: SmellyMethods = {
     methodInfo: methodDetails,
     classInfo: classDetails,
-    callsList: {
-      callsInSame: 0,
-      callsGlob: [],
+    callsInfo: {
+      callsList: {
+        callsInSame: 0,
+        callsGlob: [],
+      },
+      callsCount: 0,
     },
-    callsCount: 0,
   };
 
   analyzeMethodReferences(smellyMethod, method, clazz);
@@ -351,11 +353,11 @@ function analyzeMethodReferences(
   const callsInSameClass = countCallsInSameClass(references, clazz);
   const globalCalls = getGlobalCalls(references, clazz);
 
-  smellyMethod.callsList = {
+  smellyMethod.callsInfo.callsList = {
     callsInSame: callsInSameClass,
     callsGlob: globalCalls,
   };
-  smellyMethod.callsCount = references.length;
+  smellyMethod.callsInfo.callsCount = references.length;
 }
 
 //----------------------------------------------------------

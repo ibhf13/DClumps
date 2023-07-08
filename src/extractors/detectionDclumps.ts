@@ -100,11 +100,14 @@ function storeMethodInfo(method, clazz, filepath) {
   const smellyMethod: SmellyMethods = {
     methodInfo: methodDetails,
     classInfo: classDetails,
-    callsList: {
-      callsInSame: 0,
-      callsGlob: [],
+    callsInfo: {
+      // callsInfo is now an object
+      callsList: {
+        callsInSame: 0,
+        callsGlob: [],
+      },
+      callsCount: 0,
     },
-    callsCount: 0,
   };
 
   smellymethodGroup.push(smellyMethod);
