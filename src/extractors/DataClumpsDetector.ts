@@ -19,17 +19,26 @@ import {
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 
-function projectFileList(toAnalyzeProjectFolder: string): string[] {
+function projectFileList(
+  toAnalyzeProjectFolder: string,
+  excludeFolders: string[]
+): string[] {
   let project = new Project();
-  project.addSourceFilesAtPaths(toAnalyzeProjectFolder);
+  project.addSourceFilesAtPaths(`${toAnalyzeProjectFolder}/**/*{.d.ts,.ts}`);
 
-  return project.getSourceFiles().map((file) => file.getFilePath());
+  return project
+    .getSourceFiles()
+    .map((file) => file.getFilePath())
+    .filter(
+      (filePath) => !excludeFolders.some((folder) => filePath.includes(folder))
+    );
 }
 
 export function analyzeProjectFiles(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
-  minDataclumbs: number
+  minDataclumbs: number,
+  excludeFolders: string[]
 ): DataClumpsList[] {
   let sourceFiles = codeAnalyzerProject.getSourceFiles();
 
@@ -45,7 +54,8 @@ export function analyzeProjectFiles(
           cls,
           file.getFilePath(),
           toAnalyzeProjectFolder,
-          minDataclumbs
+          minDataclumbs,
+          excludeFolders
         );
         //compareWithParentClassMethods(method, cls, file.getFilePath());
       });
@@ -72,9 +82,10 @@ function compareMethodsWithOtherFiles(
   clazz: ClassDeclaration,
   filepath: string,
   projectFolder: string,
-  minDataclumbs: number
+  minDataclumbs: number,
+  excludeFolders: string[]
 ) {
-  const projectFiles = projectFileList(projectFolder);
+  const projectFiles = projectFileList(projectFolder, excludeFolders);
   let matchFound = false;
 
   projectFiles.forEach((filePath) => {

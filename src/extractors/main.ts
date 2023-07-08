@@ -11,9 +11,10 @@ function main() {
   const MIN_MATCHES = 2;
   const toAnalyzeProjectFolder: string = "./src/**/*.ts";
   const outputPath = "./src/output/extractedClasses/";
+  let excludedFolders = ["node_modules"];
 
   console.log(
-    `start analyzing  ${toAnalyzeProjectFolder} for data clumps Dataclumps \n...`
+    `start analyzing  ${toAnalyzeProjectFolder} for Dataclumbs \n...`
   );
 
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
@@ -22,7 +23,8 @@ function main() {
   let dataClumpsList = analyzeProjectFiles(
     codeAnalyzerProject,
     toAnalyzeProjectFolder,
-    MIN_MATCHES
+    MIN_MATCHES,
+    excludedFolders
   );
   console.log(`found ${dataClumpsList.length} Dataclumps`);
 
