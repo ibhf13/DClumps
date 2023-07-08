@@ -25,7 +25,7 @@ function createNewClass(smellymethodGroup, outputPath: string) {
   const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
   let newClassName = getNewClassName(leastParameterMethod);
   const fileName = generateUniqueFileName(
-    leastParameterMethod.classInfo.className,
+    leastParameterMethod.classInfo.className + "_" + newClassName,
     outputPath
   );
 

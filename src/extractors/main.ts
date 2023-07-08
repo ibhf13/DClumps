@@ -1,32 +1,86 @@
 import { Project } from "ts-morph";
-import { DataClumpsList, SmellyMethods } from "../utils/Interfaces";
 import { analyzeProjectFiles } from "./DataClumpsDetector";
-
 import { createNewClassesFromDataClumpsList } from "./extractNewClasses";
 import { writeFileSync } from "fs";
+import * as fs from "fs";
+import * as path from "path";
+import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
+
+function getDataClumpsList(filePath: string): DataClumpsList[] {
+  try {
+    const fileContents = fs.readFileSync(path.resolve(filePath), "utf-8");
+    const data = JSON.parse(fileContents);
+
+    return data.map((item: any) => {
+      const smellyMethods = item.smellyMethods.map((smellyMethod: any) => {
+        const { methodInfo, classInfo, callsList, callsCount } = smellyMethod;
+
+        const mappedMethodInfo: MethodInfo = {
+          methodName: methodInfo.methodName,
+          parameters: methodInfo.parameters.map((parameter: any) => ({
+            name: parameter.name,
+            type: parameter.type,
+            value: parameter.value,
+          })),
+        };
+
+        const mappedClassInfo: ClassInfo = {
+          className: classInfo.className,
+          filepath: classInfo.filepath,
+        };
+
+        const mappedCallsList = {
+          callsInSame: callsList.callsInSame,
+          callsGlob: callsList.callsGlob.map((call: any) => ({
+            classInfo: {
+              className: call.classInfo.className,
+              filepath: call.classInfo.filepath,
+            },
+            callsGlobCount: call.callsGlobCount,
+          })),
+        };
+
+        return {
+          methodInfo: mappedMethodInfo,
+          classInfo: mappedClassInfo,
+          callsList: mappedCallsList,
+          callsCount,
+        };
+      });
+      return { smellyMethods };
+    });
+  } catch (error) {
+    console.error("Error reading and parsing file", error);
+    return [];
+  }
+}
 
 function main() {
   //initialize the date collection variables
   let codeAnalyzerProject = new Project();
-  const MIN_MATCHES = 2;
+  const MIN_MATCHES = 3;
   const toAnalyzeProjectFolder: string = "./src/**/*.ts";
   const outputPath = "./src/output/extractedClasses/";
   let excludedFolders = ["node_modules"];
-
+  const withConstructor = true;
   console.log(
-    `start analyzing  ${toAnalyzeProjectFolder} for Dataclumbs \n...`
+    `start analyzing  ${toAnalyzeProjectFolder} for dataclumps \n...`
   );
+  // if we want just to use existing dataclumps from json file
+  //const dataclumpsFilepath = "./src/output/jsonDclumps/Data_Clumps_List.json";
+  //const DataClumpsListFromFile = getDataClumpsList(dataclumpsFilepath);
 
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
-  // Analyze the project files for data clumps
+  //Analyze the project files for data clumps
   let dataClumpsList = analyzeProjectFiles(
     codeAnalyzerProject,
     toAnalyzeProjectFolder,
     MIN_MATCHES,
+    withConstructor,
     excludedFolders
   );
-  console.log(`found ${dataClumpsList.length} Dataclumps`);
+  console.log(`found ${dataClumpsList.length} dataclumps`);
 
   writeFileSync(
     "./src/output/jsonDclumps/Data_Clumps_List.json",

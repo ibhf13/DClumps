@@ -24,20 +24,25 @@ function projectFileList(
   excludeFolders: string[]
 ): string[] {
   let project = new Project();
-  project.addSourceFilesAtPaths(`${toAnalyzeProjectFolder}/**/*{.d.ts,.ts}`);
+  project.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
-  return project
-    .getSourceFiles()
-    .map((file) => file.getFilePath())
-    .filter(
-      (filePath) => !excludeFolders.some((folder) => filePath.includes(folder))
-    );
+  let sourceFiles = project.getSourceFiles().map((file) => file.getFilePath());
+
+  // Filter out excluded folders
+  if (excludeFolders && excludeFolders.length > 0) {
+    sourceFiles = sourceFiles.filter((filePath) => {
+      return !excludeFolders.some((folder) => filePath.includes(folder));
+    });
+  }
+
+  return sourceFiles;
 }
 
 export function analyzeProjectFiles(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
-  minDataclumbs: number,
+  mindataclumps: number,
+  withConstructor: boolean,
   excludeFolders: string[]
 ): DataClumpsList[] {
   let sourceFiles = codeAnalyzerProject.getSourceFiles();
@@ -48,15 +53,30 @@ export function analyzeProjectFiles(
     classesInFile.forEach((cls) => {
       const methods = cls.getMethods();
       methods.forEach((method) => {
-        compareMethodsWithOtherFiles(
-          codeAnalyzerProject,
-          method,
-          cls,
-          file.getFilePath(),
-          toAnalyzeProjectFolder,
-          minDataclumbs,
-          excludeFolders
-        );
+        // Skip if method is a constructor
+        if (!withConstructor) {
+          if (method.getName() === "__constructor") return;
+
+          compareMethodsWithOtherFiles(
+            codeAnalyzerProject,
+            method,
+            cls,
+            file.getFilePath(),
+            toAnalyzeProjectFolder,
+            mindataclumps,
+            excludeFolders
+          );
+        } else {
+          compareMethodsWithOtherFiles(
+            codeAnalyzerProject,
+            method,
+            cls,
+            file.getFilePath(),
+            toAnalyzeProjectFolder,
+            mindataclumps,
+            excludeFolders
+          );
+        }
         //compareWithParentClassMethods(method, cls, file.getFilePath());
       });
     });
@@ -82,7 +102,7 @@ function compareMethodsWithOtherFiles(
   clazz: ClassDeclaration,
   filepath: string,
   projectFolder: string,
-  minDataclumbs: number,
+  mindataclumps: number,
   excludeFolders: string[]
 ) {
   const projectFiles = projectFileList(projectFolder, excludeFolders);
@@ -94,7 +114,7 @@ function compareMethodsWithOtherFiles(
       method,
       filePath,
       matchFound,
-      minDataclumbs
+      mindataclumps
     );
   });
 
@@ -106,7 +126,7 @@ function compareWithOtherClasses(
   method: MethodDeclaration,
   filePath: string,
   matchFound: boolean,
-  minDataclumbs: number
+  mindataclumps: number
 ) {
   const sourceFile = codeAnalyzerProject.getSourceFile(filePath);
   const classesInFile = sourceFile.getClasses();
@@ -117,7 +137,7 @@ function compareWithOtherClasses(
       otherClass,
       filePath,
       matchFound,
-      minDataclumbs
+      mindataclumps
     );
   });
 
@@ -129,7 +149,7 @@ function findMatchingMethods(
   otherClass: ClassDeclaration,
   filePath: string,
   matchFound: boolean,
-  minDataclumbs: number
+  mindataclumps: number
 ) {
   const otherMethods = otherClass.getMethods();
 
@@ -143,7 +163,7 @@ function findMatchingMethods(
           doParametersMatch(
             methodParameters,
             otherMethodParameters,
-            minDataclumbs
+            mindataclumps
           )
         ) {
           matchFound = true;
@@ -170,7 +190,7 @@ function findMatchingMethods(
 function doParametersMatch(
   params1: ParameterDeclaration[],
   params2: ParameterDeclaration[],
-  minDataclumbs: number
+  mindataclumps: number
 ) {
   let matchMap = new Map();
 
@@ -189,7 +209,7 @@ function doParametersMatch(
   let matchCount = 0;
   for (let count of matchMap.values()) {
     matchCount += count;
-    if (matchCount >= minDataclumbs) return true;
+    if (matchCount >= mindataclumps) return true;
   }
 
   return false;
@@ -391,7 +411,7 @@ function compareWithParentClassMethods(
   method: MethodDeclaration,
   clazz: ClassDeclaration,
   filePath: string,
-  minDataclumbs: number
+  mindataclumps: number
 ) {
   let matchFound = false;
 
@@ -414,7 +434,7 @@ function compareWithParentClassMethods(
           doParametersMatch(
             methodParameters,
             baseMethodParameters,
-            minDataclumbs
+            mindataclumps
           )
         ) {
           matchFound = true; // Set matchFound flag to true
