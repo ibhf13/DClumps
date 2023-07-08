@@ -41,7 +41,7 @@ function projectFileList(
 export function analyzeProjectFiles(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
-  mindataclumps: number,
+  minDataClumps: number,
   withConstructor: boolean,
   excludeFolders: string[]
 ): DataClumpsList[] {
@@ -63,7 +63,7 @@ export function analyzeProjectFiles(
             cls,
             file.getFilePath(),
             toAnalyzeProjectFolder,
-            mindataclumps,
+            minDataClumps,
             excludeFolders
           );
         } else {
@@ -73,7 +73,7 @@ export function analyzeProjectFiles(
             cls,
             file.getFilePath(),
             toAnalyzeProjectFolder,
-            mindataclumps,
+            minDataClumps,
             excludeFolders
           );
         }
@@ -102,7 +102,7 @@ function compareMethodsWithOtherFiles(
   clazz: ClassDeclaration,
   filepath: string,
   projectFolder: string,
-  mindataclumps: number,
+  minDataClumps: number,
   excludeFolders: string[]
 ) {
   const projectFiles = projectFileList(projectFolder, excludeFolders);
@@ -114,7 +114,7 @@ function compareMethodsWithOtherFiles(
       method,
       filePath,
       matchFound,
-      mindataclumps
+      minDataClumps
     );
   });
 
@@ -126,7 +126,7 @@ function compareWithOtherClasses(
   method: MethodDeclaration,
   filePath: string,
   matchFound: boolean,
-  mindataclumps: number
+  minDataClumps: number
 ) {
   const sourceFile = codeAnalyzerProject.getSourceFile(filePath);
   const classesInFile = sourceFile.getClasses();
@@ -137,7 +137,7 @@ function compareWithOtherClasses(
       otherClass,
       filePath,
       matchFound,
-      mindataclumps
+      minDataClumps
     );
   });
 
@@ -149,7 +149,7 @@ function findMatchingMethods(
   otherClass: ClassDeclaration,
   filePath: string,
   matchFound: boolean,
-  mindataclumps: number
+  minDataClumps: number
 ) {
   const otherMethods = otherClass.getMethods();
 
@@ -163,7 +163,7 @@ function findMatchingMethods(
           doParametersMatch(
             methodParameters,
             otherMethodParameters,
-            mindataclumps
+            minDataClumps
           )
         ) {
           matchFound = true;
@@ -190,7 +190,7 @@ function findMatchingMethods(
 function doParametersMatch(
   params1: ParameterDeclaration[],
   params2: ParameterDeclaration[],
-  mindataclumps: number
+  minDataClumps: number
 ) {
   let matchMap = new Map();
 
@@ -209,7 +209,7 @@ function doParametersMatch(
   let matchCount = 0;
   for (let count of matchMap.values()) {
     matchCount += count;
-    if (matchCount >= mindataclumps) return true;
+    if (matchCount >= minDataClumps) return true;
   }
 
   return false;
@@ -411,7 +411,7 @@ function compareWithParentClassMethods(
   method: MethodDeclaration,
   clazz: ClassDeclaration,
   filePath: string,
-  mindataclumps: number
+  minDataClumps: number
 ) {
   let matchFound = false;
 
@@ -434,7 +434,7 @@ function compareWithParentClassMethods(
           doParametersMatch(
             methodParameters,
             baseMethodParameters,
-            mindataclumps
+            minDataClumps
           )
         ) {
           matchFound = true; // Set matchFound flag to true
