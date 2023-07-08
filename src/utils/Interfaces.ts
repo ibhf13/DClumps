@@ -43,22 +43,19 @@ export interface FunctionInfo {
   parameters: ParameterInfo[];
 }
 
-export interface FunctionCalls {
-  callsInSame: number;
-  callsGlob: FunctionGlobalCalls[];
-}
-
-export interface FunctionGlobalCalls {
-  filePath: string;
-  callsGlobCount: number;
-}
-
 export interface SmellyFunction {
   functionInfo: FunctionInfo;
-  callsList: FunctionCalls;
+  callsList?: CallsList;
+  callsCount: number;
+}
+export interface smellyClassFieldGroup {
+  classInfo: ClassInfo;
+  parameters: ParameterInfo[];
+  callsList?: CallsList;
   callsCount: number;
 }
 export interface DataClumpsList {
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
+  smellyClassFieldGroup?: smellyClassFieldGroup[];
 }
