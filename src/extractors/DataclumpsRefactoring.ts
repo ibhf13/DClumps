@@ -137,23 +137,21 @@ function refactorMethodCallsUsingThis(
 
         // Only process common and uncommon parameters if newClass instance doesn't already exist
         if (!existingNewClassInstance) {
-          for (let i = 0; i < argumentsList.length; i++) {
-            let argumentsType = argumentsList[i].getType().getLiteralValue();
-            let found = false;
-
-            for (let j = 0; j < newClassParamTypes.length; j++) {
-              if (getType(argumentsType) === newClassParamTypes[j]) {
-                found = true;
-                newClassArguments.push(argumentsList[i].getText());
-                newClassParamTypes.splice(j, 1); // Remove common type to avoid duplication
-                break;
-              }
-            }
-
-            if (!found) {
-              otherArguments.push(argumentsList[i].getText());
+          for (let i = 0; i < newClassParamTypes.length; i++) {
+            let foundIndex = argumentsList.findIndex(
+              (arg) =>
+                getType(arg.getType().getLiteralValue()) ===
+                newClassParamTypes[i]
+            );
+            if (foundIndex !== -1) {
+              newClassArguments.push(argumentsList[foundIndex].getText());
+              argumentsList.splice(foundIndex, 1); // Remove common argument to avoid duplication
+            } else {
+              newClassArguments.push("undefined");
             }
           }
+          otherArguments = argumentsList.map((arg) => arg.getText());
+
           const newArgument = `new ${
             newClassInfo.className
           }(${newClassArguments.join(", ")})`;
@@ -197,23 +195,19 @@ function refactorMethodInOtherFile(
       );
 
       if (!existingNewClassInstance) {
-        for (let i = 0; i < argumentsList.length; i++) {
-          const argumentType = argumentsList[i].getType().getLiteralValue();
-          let found = false;
-
-          for (let j = 0; j < newClassParamTypes.length; j++) {
-            if (typeof argumentType === newClassParamTypes[j]) {
-              found = true;
-              newClassArguments.push(argumentsList[i].getText());
-              newClassParamTypes.splice(j, 1);
-              break;
-            }
-          }
-
-          if (!found) {
-            otherArguments.push(argumentsList[i].getText());
+        for (let i = 0; i < newClassParamTypes.length; i++) {
+          let foundIndex = argumentsList.findIndex(
+            (arg) =>
+              typeof arg.getType().getLiteralValue() === newClassParamTypes[i]
+          );
+          if (foundIndex !== -1) {
+            newClassArguments.push(argumentsList[foundIndex].getText());
+            argumentsList.splice(foundIndex, 1); // Remove common argument to avoid duplication
+          } else {
+            newClassArguments.push("undefined");
           }
         }
+        otherArguments = argumentsList.map((arg) => arg.getText());
 
         const newArgument = `new ${
           newClassInfo.className
