@@ -51,14 +51,15 @@ export interface SmellyFunction {
   functionInfo: FunctionInfo;
   callsList?: CallsList;
 }
+
 export interface SmellyFields {
-  fieldParameter: ParameterInfo;
+  fieldInfo: ParameterInfo[];
   classInfo: ClassInfo;
-  callsInfo: CallsInfo;
+  callsInfo?: CallsInfo;
 }
 
 export interface DataClumpsList {
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
-  smellyClassFieldGroup?: SmellyFields[];
+  smellyFieldGroup?: SmellyFields[];
 }

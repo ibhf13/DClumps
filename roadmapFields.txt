@@ -1,0 +1,23 @@
+i need to improve my code to detect smellyClassFieldGroup which act just like smellyMethodGroup but for field variable
+
+Here are the general steps you might follow:
+
+1. Define new data structures `smellyClassFieldGroup` and `Data_Clumps_List`.
+
+2. Incorporate the `projectFileList` function into the existing system. This should be straightforward as it is essentially just getting a list of files.
+
+3. Extend the current parsing mechanism in the `analyzeProjectFiles` function to detect class variables.
+
+4. Modify your analysis function (`analyzeProjectFiles`) to not only iterate over methods and their parameters, but also over classes and their fields.
+
+5. Incorporate the `compareClassesWithOtherFiles` function to compare classes across different files. You need to define what makes two classes "similar" in this context.
+
+6. The `compareDataFieldsWithOtherClasses`, `findMatchingClassesForDataFields`, `doVariablesMatch` functions is the core of my new algorithm. They should be added as separate functions in the code, being called from your analysis function.
+
+7. Add `isClassInDataClumpsList` and `isClassInSmellyClassFieldGroup` functions to check if a class already exists in your data clumps list or smelly class field group.
+
+8. Extend your class info storing mechanism with the `storeClassInfo` function, ensuring you capture class name, variables, and their types.
+
+9. Implement `analyzeClassReferences` to find all references of the class and count them.
+
+Remember that any new functionality you add should be covered with console log to teat it's working as expected and to catch any regressions .

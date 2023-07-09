@@ -4,6 +4,7 @@ import {
   Node,
   ParameterDeclaration,
   Project,
+  PropertyDeclaration,
   ReferenceFindableNode,
   SyntaxKind,
 } from "ts-morph";
@@ -14,8 +15,11 @@ import {
   DataClumpsList,
   SmellyMethods,
   GlobalCalls,
+  NewClassInfo,
+  SmellyFields,
 } from "../utils/Interfaces";
 
+let smellyFieldGroup: SmellyFields[] = [];
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 
@@ -360,113 +364,201 @@ function analyzeMethodReferences(
   smellyMethod.callsInfo.callsCount = references.length;
 }
 
-//----------------------------------------------------------
-//TODO handling interfaces
-function doesClassImplementItsInterfaces(clazz) {
-  const interfaces = clazz.getInterfaces();
+// //----------------------------------------------------------
+// //TODO handling interfaces
+// function doesClassImplementItsInterfaces(clazz) {
+//   const interfaces = clazz.getInterfaces();
 
-  for (let iface of interfaces) {
-    const interfaceMethods = iface.getMethods();
+//   for (let iface of interfaces) {
+//     const interfaceMethods = iface.getMethods();
 
-    for (let interfaceMethod of interfaceMethods) {
-      const correspondingClassMethod = clazz.getMethod(
-        interfaceMethod.getName()
-      );
+//     for (let interfaceMethod of interfaceMethods) {
+//       const correspondingClassMethod = clazz.getMethod(
+//         interfaceMethod.getName()
+//       );
 
-      if (!correspondingClassMethod) {
-        console.error(
-          `Class ${clazz.getName()} does not implement method ${interfaceMethod.getName()} from interface ${iface.getName()}.`
-        );
-        return false;
-      }
+//       if (!correspondingClassMethod) {
+//         console.error(
+//           `Class ${clazz.getName()} does not implement method ${interfaceMethod.getName()} from interface ${iface.getName()}.`
+//         );
+//         return false;
+//       }
 
-      const interfaceParameters = interfaceMethod.getParameters();
-      const classMethodParameters = correspondingClassMethod.getParameters();
+//       const interfaceParameters = interfaceMethod.getParameters();
+//       const classMethodParameters = correspondingClassMethod.getParameters();
 
-      if (interfaceParameters.length !== classMethodParameters.length) {
-        console.error(
-          `Method ${interfaceMethod.getName()} in class ${clazz.getName()} does not have the correct number of parameters for interface ${iface.getName()}.`
-        );
-        return false;
-      }
+//       if (interfaceParameters.length !== classMethodParameters.length) {
+//         console.error(
+//           `Method ${interfaceMethod.getName()} in class ${clazz.getName()} does not have the correct number of parameters for interface ${iface.getName()}.`
+//         );
+//         return false;
+//       }
 
-      for (let i = 0; i < interfaceParameters.length; i++) {
-        if (
-          interfaceParameters[i].getType().getText() !==
-          classMethodParameters[i].getType().getText()
-        ) {
-          console.error(
-            `Parameter ${interfaceParameters[
-              i
-            ].getName()} in method ${interfaceMethod.getName()} of class ${clazz.getName()} does not have the correct type for interface ${iface.getName()}.`
-          );
-          return false;
-        }
-      }
-    }
-  }
+//       for (let i = 0; i < interfaceParameters.length; i++) {
+//         if (
+//           interfaceParameters[i].getType().getText() !==
+//           classMethodParameters[i].getType().getText()
+//         ) {
+//           console.error(
+//             `Parameter ${interfaceParameters[
+//               i
+//             ].getName()} in method ${interfaceMethod.getName()} of class ${clazz.getName()} does not have the correct type for interface ${iface.getName()}.`
+//           );
+//           return false;
+//         }
+//       }
+//     }
+//   }
 
-  return true;
-}
-//TODO handling inhiratence
-function compareWithParentClassMethods(
-  method: MethodDeclaration,
-  clazz: ClassDeclaration,
-  filePath: string,
-  minDataClumps: number
-) {
-  let matchFound = false;
+//   return true;
+// }
+// //TODO handling inhiratence
+// function compareWithParentClassMethods(
+//   method: MethodDeclaration,
+//   clazz: ClassDeclaration,
+//   filePath: string,
+//   minDataClumps: number
+// ) {
+//   let matchFound = false;
 
-  // Check if the class has a base class
-  if (clazz.getBaseClass()) {
-    const baseClass = clazz.getBaseClass();
+//   // Check if the class has a base class
+//   if (clazz.getBaseClass()) {
+//     const baseClass = clazz.getBaseClass();
 
-    const baseClassMethods = baseClass.getMethods();
+//     const baseClassMethods = baseClass.getMethods();
 
-    baseClassMethods.forEach((baseMethod) => {
-      if (baseMethod.getName() !== method.getName()) {
-        return; // Skip method if names are different
-      }
+//     baseClassMethods.forEach((baseMethod) => {
+//       if (baseMethod.getName() !== method.getName()) {
+//         return; // Skip method if names are different
+//       }
 
-      const baseMethodParameters = baseMethod.getParameters();
+//       const baseMethodParameters = baseMethod.getParameters();
 
-      if (baseMethodParameters.length > 2) {
-        const methodParameters = method.getParameters();
-        if (
-          doParametersMatch(
-            methodParameters,
-            baseMethodParameters,
-            minDataClumps
-          )
-        ) {
-          matchFound = true; // Set matchFound flag to true
+//       if (baseMethodParameters.length > 2) {
+//         const methodParameters = method.getParameters();
+//         if (
+//           doParametersMatch(
+//             methodParameters,
+//             baseMethodParameters,
+//             minDataClumps
+//           )
+//         ) {
+//           matchFound = true; // Set matchFound flag to true
 
-          if (
-            !isMethodInDataClumpsList(
-              baseMethod.getName(),
-              baseClass.getName()
-            ) &&
-            !isMethodInSmellymethodGroup(
-              baseMethod.getName(),
-              baseClass.getName()
-            )
-          ) {
-            storeMethodInfo(
-              baseMethod,
-              baseClass,
-              baseClass.getSourceFile().getFilePath()
-            );
-          }
-        }
-      }
-    });
+//           if (
+//             !isMethodInDataClumpsList(
+//               baseMethod.getName(),
+//               baseClass.getName()
+//             ) &&
+//             !isMethodInSmellymethodGroup(
+//               baseMethod.getName(),
+//               baseClass.getName()
+//             )
+//           ) {
+//             storeMethodInfo(
+//               baseMethod,
+//               baseClass,
+//               baseClass.getSourceFile().getFilePath()
+//             );
+//           }
+//         }
+//       }
+//     });
 
-    // Store the original method if a match was found and it is not already in the smellyMethodGroup
-    if (
-      matchFound &&
-      !isMethodInDataClumpsList(method.getName(), clazz.getName())
-    ) {
-      storeMethodInfo(method, clazz, filePath);
-    }
-  }
-}
+//     // Store the original method if a match was found and it is not already in the smellyMethodGroup
+//     if (
+//       matchFound &&
+//       !isMethodInDataClumpsList(method.getName(), clazz.getName())
+//     ) {
+//       storeMethodInfo(method, clazz, filePath);
+//     }
+//   }
+// }
+
+// function detectFieldDataClumpsInClass(
+//   clazz: ClassDeclaration,
+//   codeAnalyzerProject: Project,
+//   projectFolder: string,
+//   minDataClumps: number,
+//   excludeFolders: string[]
+// ) {
+//   const classProperties = clazz.getProperties();
+//   if (classProperties.length <= 1) {
+//     // If the class has one or no properties, it can't have a data clump
+//     return;
+//   }
+
+//   const projectFiles = projectFileList(projectFolder, excludeFolders);
+//   projectFiles.forEach((filePath) => {
+//     const sourceFile = codeAnalyzerProject.getSourceFile(filePath);
+//     const classesInFile = sourceFile.getClasses();
+//     classesInFile.forEach((otherClass) => {
+//       if (otherClass === clazz) return;
+//       const otherClassProperties = otherClass.getProperties();
+
+//       if (otherClassProperties.length > 1) {
+//         const fieldsMatch = doFieldsMatch(
+//           classProperties,
+//           otherClassProperties,
+//           minDataClumps
+//         );
+
+//         if (fieldsMatch) {
+//           storeClassInfo(clazz, classProperties);
+//           storeClassInfo(otherClass, otherClassProperties);
+//         }
+//       }
+//     });
+//   });
+// }
+
+// function doFieldsMatch(
+//   fields1: PropertyDeclaration[],
+//   fields2: PropertyDeclaration[],
+//   minDataClumps: number
+// ) {
+//   let matchMap = new Map();
+
+//   for (let field1 of fields1) {
+//     for (let field2 of fields2) {
+//       if (
+//         field1.getName() === field2.getName() &&
+//         field1.getType().getText() === field2.getType().getText()
+//       ) {
+//         let matchKey = field1.getName() + field1.getType().getText();
+//         matchMap.set(matchKey, (matchMap.get(matchKey) || 0) + 1);
+//       }
+//     }
+//   }
+
+//   let matchCount = 0;
+//   for (let count of matchMap.values()) {
+//     matchCount += count;
+//     if (matchCount >= minDataClumps) return true;
+//   }
+
+//   return false;
+// }
+
+// function storeClassInfo(
+//   clazz: ClassDeclaration,
+//   fields: PropertyDeclaration[]
+// ) {
+//   const fieldInformation: ParameterInfo[] = fields.map(
+//     (field: PropertyDeclaration) => ({
+//       name: field.getName(),
+//       type: field.getType().getText(),
+//       value: field.getInitializer()?.getText(),
+//     })
+//   );
+
+//   const classDetails: NewClassInfo = {
+//     className: clazz.getName() || "",
+//     filepath: clazz.getSourceFile().getFilePath(),
+//     parameters: fieldInformation,
+//   };
+
+//   Data_Clumps_List.push({
+//     classInfo: classDetails,
+//   });
+// }

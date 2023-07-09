@@ -5,6 +5,7 @@ import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
+import { DetectSmellyFields } from "./DataFieldDetector";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
@@ -73,11 +74,17 @@ function main() {
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
   //Analyze the project files for data clumps
-  let dataClumpsList = analyzeProjectFiles(
+  // let dataClumpsList = analyzeProjectFiles(
+  //   codeAnalyzerProject,
+  //   toAnalyzeProjectFolder,
+  //   MIN_MATCHES,
+  //   withConstructor,
+  //   excludedFolders
+  // );
+  let dataClumpsList = DetectSmellyFields(
     codeAnalyzerProject,
     toAnalyzeProjectFolder,
     MIN_MATCHES,
-    withConstructor,
     excludedFolders
   );
   console.log(`found ${dataClumpsList.length} dataclumps`);
@@ -88,7 +95,7 @@ function main() {
   );
   console.log("\n\n\nStart refactoring \n...");
 
-  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  //createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
 }
 
 // Run the main function

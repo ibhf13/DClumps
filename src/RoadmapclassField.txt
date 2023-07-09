@@ -1,0 +1,36 @@
+I have this algorithm to detect data clumps in class variables instead of method parameters. which is very similar to the previous code
+how can extend my code to incorporate this new algorithm inside
+The new algorithm would look something like this:
+
+1. Initialize `smellyClassFieldGroup` and `Data_Clumps_List` to store detected problematic classes and data clumps, respectively.
+
+2. Implement the `projectFileList` function to get a list of all source files in the project, excluding the files from specified folders.
+
+3. Implement the `analyzeProjectFiles` function that:
+
+   - Iterates over each source file in the project.
+   - For each file, it iterates over each class.
+   - It checks if the class has more than two variables. If it does, the class is then compared with other classes in other files using `compareClassesWithOtherFiles`.
+   - If more than one smelly class is detected in the file, it is added to `Data_Clumps_List`.
+
+4. In `compareClassesWithOtherFiles`, the given class is compared with classes in all other files of the project. If a match is found, the class is added to `smellyClassFieldGroup`.
+
+5. In `compareWithOtherClasses`, the given class is compared with other classes in the same file.
+
+6. In `findMatchingClasses`, if the other class isn't the same as the given class and it has more than two variables, check if variables match with `doVariablesMatch`. If they do, store the information of this other class.
+
+7. The `doVariablesMatch` function checks if two sets of variables have at least `minDataClumps` variables in common by type and name.
+
+8. Implement the `isClassInDataClumpsList` and `isClassInSmellyClassFieldGroup` to check if a class with the given name exists in `Data_Clumps_List` and `smellyClassFieldGroup` respectively.
+
+9. In `storeClassInfo`, it stores the class's name, variables, and their types if the class has variables.
+
+10. `analyzeClassReferences` then finds all references of the stored class in the source code. It counts the number of references to the class and stores this information, along with the class and the file path, in `smellyClassFieldGroup`.
+
+11. The `doesClassImplementItsInterfaces` function checks if a given class properly implements all of its interfaces by comparing variables and their types.
+
+12. The `compareWithParentClassVariables` function compares variables from a class with variables from its parent class, following similar steps as `compareClassesWithOtherFiles` and `compareWithOtherClasses`.
+
+This script identifies classes with similar sets of variables (also known as data clumps) that can indicate problems in the code such as duplicate code or classes that may be too complex or have too many responsibilities. It pays special attention to whether the classes are properly implementing their interfaces, and whether variables from parent classes should be compared as well.
+
+You might need to consider additional factors such as class hierarchy and access modifiers (public, private, protected) when determining if two classes are similar.
