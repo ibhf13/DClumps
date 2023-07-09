@@ -12,6 +12,7 @@ class Fields3 {
   fieldsX = 10;
   fieldsY: number;
   fieldsString: string;
+  fieldBoolean1: Boolean;
 
   normalMethod(): void {
     let temp = this.fieldsX + 20;
