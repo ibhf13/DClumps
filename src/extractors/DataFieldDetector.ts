@@ -129,7 +129,7 @@ function findMatchingFields(
         !isFieldInDataClumpsList(filePath, otherClass.getName()) &&
         !isFieldInSmellyFieldGroup(filePath, otherClass.getName())
       ) {
-        storeFieldInfo(fields, otherClass, filePath);
+        storeFieldInfo(otherFields, otherClass, filePath);
       }
     }
   }
