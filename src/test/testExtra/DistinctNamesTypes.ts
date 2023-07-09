@@ -25,26 +25,27 @@ class Fields1 {
 class Fields2 {
   fieldsString: string = "name";
   fieldsX: number = 10;
+  fieldsG: number = 10;
   fieldsY: number;
 }
 
-class Animal {
-  age2: number;
-  wieght: number;
-  name: string;
-}
+// class Animal {
+//   age2: number;
+//   wieght: number;
+//   name: string;
+// }
 
-class Cat extends Animal {
-  age: number;
-  wieght: number;
-  name: string;
-}
+// class Cat extends Animal {
+//   age: number;
+//   wieght: number;
+//   name: string;
+// }
 
-class Dog extends Animal {
-  age1: number;
-  wieght2: number;
-  name: string;
-}
+// class Dog extends Animal {
+//   age1: number;
+//   wieght2: number;
+//   name: string;
+// }
 
 class Outer {
   public outMethod(xIn: number, yInner: number, name: string): void {

@@ -1,20 +1,8 @@
-import {
-  ClassDeclaration,
-  MethodDeclaration,
-  Node,
-  ParameterDeclaration,
-  Project,
-  PropertyDeclaration,
-  ReferenceFindableNode,
-  SyntaxKind,
-} from "ts-morph";
+import { ClassDeclaration, Project, PropertyDeclaration } from "ts-morph";
 import {
   ClassInfo,
-  MethodInfo,
   ParameterInfo,
   DataClumpsList,
-  SmellyMethods,
-  GlobalCalls,
   SmellyFields,
 } from "../utils/Interfaces";
 
@@ -53,30 +41,23 @@ export function DetectSmellyFields(
     let classesInFile = file.getClasses();
     classesInFile.forEach((cls) => {
       const fields = cls.getProperties(); // Here's where we get the fields
-      fields.forEach((field) => {
-        compareFieldsWithOtherFiles(
-          codeAnalyzerProject,
-          field,
-          cls,
-          file.getFilePath(),
-          toAnalyzeProjectFolder,
-          minDataClumps,
-          excludeFolders
-        );
-      });
-
-      if (smellyFieldGroup.length > 1) {
-        console.log(
-          `Detected ${
-            smellyFieldGroup.length
-          } smelly fields in class: ${cls.getName()}`
-        );
-        Data_Clumps_List.push({
-          smellyFieldGroup: [...smellyFieldGroup],
-        });
-        smellyFieldGroup = [];
-      }
+      compareFieldsWithOtherFiles(
+        codeAnalyzerProject,
+        fields,
+        cls,
+        file.getFilePath(),
+        toAnalyzeProjectFolder,
+        minDataClumps,
+        excludeFolders
+      );
     });
+    if (smellyFieldGroup.length > 1) {
+      console.log(`Detected ${smellyFieldGroup.length}`);
+      Data_Clumps_List.push({
+        smellyFieldGroup: [...smellyFieldGroup],
+      });
+      smellyFieldGroup = [];
+    }
   });
 
   return Data_Clumps_List;
@@ -84,32 +65,32 @@ export function DetectSmellyFields(
 
 function compareFieldsWithOtherFiles(
   codeAnalyzerProject: Project,
-  field: PropertyDeclaration,
+  fields: PropertyDeclaration[], //first field to check
   clazz: ClassDeclaration,
   filepath: string,
   projectFolder: string,
   mindataclumps: number,
   excludeFolders: string[]
 ) {
-  const projectFiles = projectFileList(projectFolder, excludeFolders); // You should define projectFileList() to return all project files
+  const projectFiles = projectFileList(projectFolder, excludeFolders);
   let matchFound = false;
 
-  projectFiles.forEach((filePath) => {
+  projectFiles.forEach((file) => {
     matchFound = compareWithOtherClassesForFields(
       codeAnalyzerProject,
-      field,
-      filePath,
+      fields,
+      file, // new file to check
       matchFound,
       mindataclumps
     );
   });
 
-  storeSmellyFields(matchFound, field, clazz, filepath); // Stores the field if it is "smelly"
+  // storeSmellyFields(matchFound, fields, clazz, filepath); // Stores the field if it is "smelly"
 }
 
 function compareWithOtherClassesForFields(
   codeAnalyzerProject: Project,
-  field: PropertyDeclaration,
+  fields: PropertyDeclaration[], //same first field
   filePath: string,
   matchFound: boolean,
   mindataclumps: number
@@ -119,7 +100,7 @@ function compareWithOtherClassesForFields(
 
   classesInFile.forEach((otherClass) => {
     matchFound = findMatchingFields(
-      field,
+      fields,
       otherClass,
       filePath,
       matchFound,
@@ -130,94 +111,38 @@ function compareWithOtherClassesForFields(
   return matchFound;
 }
 
-function isFieldInDataClumpsList(filepath: string, className: string): boolean {
-  return Data_Clumps_List.some((dataClump) =>
-    dataClump.smellyFieldGroup.some(
-      (smellyField) =>
-        smellyField.classInfo.className === className &&
-        smellyField.classInfo.filepath === filepath
-    )
-  );
-}
-
-function isFieldInSmellyFieldGroup(
-  filepath: string,
-  className: string
-): boolean {
-  return smellyFieldGroup.some(
-    (smellyField) =>
-      smellyField.classInfo.className === className &&
-      smellyField.classInfo.filepath === filepath
-  );
-}
-
-function storeSmellyFields(
-  matchFound: boolean,
-  field: PropertyDeclaration,
-  clazz: ClassDeclaration,
-  filepath: string
-) {
-  if (
-    matchFound &&
-    !isFieldInDataClumpsList(field.getName(), clazz.getName())
-  ) {
-    storeFieldInfo(field, clazz, filepath);
-  }
-}
-
-function storeFieldInfo(
-  field: PropertyDeclaration,
-  clazz: ClassDeclaration,
-  filepath: string
-) {
-  const classFields = clazz.getProperties();
-  const fieldDetails: ParameterInfo[] = classFields.map((fieldVariable) => ({
-    name: fieldVariable.getName(),
-    type: fieldVariable.getType().getText(),
-    value: fieldVariable.getInitializer()?.getText(),
-  }));
-
-  const classDetails: ClassInfo = {
-    className: clazz.getName() || "",
-    filepath,
-  };
-
-  const smellyField: SmellyFields = {
-    fieldInfo: fieldDetails,
-    classInfo: classDetails,
-  };
-
-  smellyFieldGroup.push(smellyField);
-}
-
 function findMatchingFields(
-  field: PropertyDeclaration,
-  otherClass: ClassDeclaration,
+  fields: PropertyDeclaration[], // original fields
+  otherClass: ClassDeclaration, //to compare with
   filePath: string,
   matchFound: boolean,
   minDataClumps: number
 ) {
-  const otherFields = otherClass.getProperties();
+  const otherFields: PropertyDeclaration[] = otherClass.getProperties();
+  //TOdo compare field with otherFields both are list
 
-  otherFields.forEach((otherField) => {
-    if (otherField !== field) {
-      if (doParametersMatch(field, otherFields, minDataClumps)) {
-        matchFound = true;
-        if (
-          !isFieldInDataClumpsList(field.getName(), otherClass.getName()) &&
-          !isFieldInSmellyFieldGroup(field.getName(), otherClass.getName())
-        ) {
-          storeFieldInfo(field, otherClass, filePath);
-        }
+  if (otherFields.length >= minDataClumps) {
+    if (doParametersMatch(fields, otherFields, minDataClumps)) {
+      matchFound = true;
+
+      if (
+        !isFieldInDataClumpsList(filePath, otherClass.getName()) &&
+        !isFieldInSmellyFieldGroup(filePath, otherClass.getName())
+      ) {
+        storeFieldInfo(fields, otherClass, filePath);
       }
     }
-  });
+  }
 
   return matchFound;
 }
-function doParametersMatch(params1, params2, minDataClumps: number) {
+
+function doParametersMatch(
+  params1: PropertyDeclaration[],
+  params2: PropertyDeclaration[],
+  minDataClumps: number
+) {
   let matchMap = new Map();
-  console.log(params1);
 
   for (let param1 of params1) {
     for (let param2 of params2) {
@@ -238,4 +163,60 @@ function doParametersMatch(params1, params2, minDataClumps: number) {
   }
 
   return false;
+}
+
+function isFieldInDataClumpsList(filepath: string, className: string): boolean {
+  return Data_Clumps_List.some((dataClump) =>
+    dataClump.smellyFieldGroup.some(
+      (smellyField) =>
+        smellyField.classInfo.className === className &&
+        smellyField.classInfo.filepath === filepath
+    )
+  );
+}
+
+function isFieldInSmellyFieldGroup(
+  filepath: string,
+  className: string
+): boolean {
+  return smellyFieldGroup.some(
+    (smellyField) =>
+      smellyField.classInfo.filepath === filepath &&
+      smellyField.classInfo.className === className
+  );
+}
+
+function storeSmellyFields(
+  matchFound: boolean,
+  field: PropertyDeclaration[],
+  clazz: ClassDeclaration,
+  filePath: string
+) {
+  if (matchFound && !isFieldInDataClumpsList(filePath, clazz.getName())) {
+    storeFieldInfo(field, clazz, filePath);
+  }
+}
+
+function storeFieldInfo(
+  field: PropertyDeclaration[],
+  clazz: ClassDeclaration,
+  filepath: string
+) {
+  const fieldDetails: ParameterInfo[] = field.map((fieldVariable) => ({
+    name: fieldVariable.getName(),
+    type: fieldVariable.getType().getText(),
+    value: fieldVariable.getInitializer()?.getText(),
+  }));
+
+  const classDetails: ClassInfo = {
+    className: clazz.getName() || "",
+    filepath,
+  };
+
+  const smellyField: SmellyFields = {
+    fieldInfo: fieldDetails,
+    classInfo: classDetails,
+  };
+
+  smellyFieldGroup.push(smellyField);
 }
