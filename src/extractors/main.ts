@@ -74,19 +74,19 @@ function main() {
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
   //Analyze the project files for data clumps
-  // let dataClumpsList = analyzeProjectFiles(
-  //   codeAnalyzerProject,
-  //   toAnalyzeProjectFolder,
-  //   MIN_MATCHES,
-  //   withConstructor,
-  //   excludedFolders
-  // );
-  let dataClumpsList = DetectSmellyFields(
+  let dataClumpsList = analyzeProjectFiles(
     codeAnalyzerProject,
     toAnalyzeProjectFolder,
     MIN_MATCHES,
+    withConstructor,
     excludedFolders
   );
+  // let dataClumpsList = DetectSmellyFields(
+  //   codeAnalyzerProject,
+  //   toAnalyzeProjectFolder,
+  //   MIN_MATCHES,
+  //   excludedFolders
+  // );
   console.log(`found ${dataClumpsList.length} dataclumps`);
 
   writeFileSync(
@@ -95,7 +95,7 @@ function main() {
   );
   console.log("\n\n\nStart refactoring \n...");
 
-  //createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
 }
 
 // Run the main function

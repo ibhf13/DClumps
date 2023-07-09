@@ -157,20 +157,17 @@ function generateGettersAndSetters(
   newClassDeclaration: ClassDeclaration
 ) {
   smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
-    newClassDeclaration.addGetAccessor({
-      name:
-        "get" +
-        parameter.name.charAt(0).toUpperCase() +
-        parameter.name.slice(1),
+    const capitalizedParamName =
+      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1);
+
+    newClassDeclaration.addMethod({
+      name: `get${capitalizedParamName}`,
       returnType: parameter.type,
       statements: `return this.${parameter.name};`,
     });
 
     newClassDeclaration.addSetAccessor({
-      name:
-        "set" +
-        parameter.name.charAt(0).toUpperCase() +
-        parameter.name.slice(1),
+      name: `set${capitalizedParamName}`,
       parameters: [{ name: parameter.name, type: parameter.type }],
       statements: `this.${parameter.name} = ${parameter.name};`,
     });
