@@ -88,8 +88,10 @@ function main() {
   );
   console.log(`found ${dataClumpsList.length} Smelly Methods dataclumps`);
 
-  //console.log("\n\n\nStart refactoring \n...");
-  //createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  console.log("\n\n\nStart refactoring \n...");
+  console.log("Create new Classes for Smelly Methods");
+
+  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
 
   let dataClumpsListWithFields = DetectSmellyFields(
     codeAnalyzerProject,
@@ -106,6 +108,7 @@ function main() {
     "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
     JSON.stringify(dataClumpsListWithFields, null, 2)
   );
+  console.log("Create new Classes for Smelly Fields");
 
   createNewClassesFromSmellyFieldDataClumpsList(
     dataClumpsListWithFields,
