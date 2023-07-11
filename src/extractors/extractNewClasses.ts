@@ -166,7 +166,7 @@ function generateGettersAndSetters(
       statements: `return this.${parameter.name};`,
     });
 
-    newClassDeclaration.addSetAccessor({
+    newClassDeclaration.addMethod({
       name: `set${capitalizedParamName}`,
       parameters: [{ name: parameter.name, type: parameter.type }],
       statements: `this.${parameter.name} = ${parameter.name};`,
