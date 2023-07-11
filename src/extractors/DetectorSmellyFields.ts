@@ -5,28 +5,10 @@ import {
   DataClumpsList,
   SmellyFields,
 } from "../utils/Interfaces";
+import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 
 let smellyFieldGroup: SmellyFields[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
-
-function projectFileList(
-  toAnalyzeProjectFolder: string,
-  excludeFolders: string[]
-): string[] {
-  let project = new Project();
-  project.addSourceFilesAtPaths(toAnalyzeProjectFolder);
-
-  let sourceFiles = project.getSourceFiles().map((file) => file.getFilePath());
-
-  // Filter out excluded folders
-  if (excludeFolders && excludeFolders.length > 0) {
-    sourceFiles = sourceFiles.filter((filePath) => {
-      return !excludeFolders.some((folder) => filePath.includes(folder));
-    });
-  }
-
-  return sourceFiles;
-}
 
 export function DetectSmellyFields(
   codeAnalyzerProject: Project,
@@ -37,15 +19,12 @@ export function DetectSmellyFields(
   let sourceFiles = codeAnalyzerProject.getSourceFiles();
 
   sourceFiles.forEach((file) => {
-    // Analysis of classes
     let classesInFile = file.getClasses();
     classesInFile.forEach((cls) => {
-      const fields = cls.getProperties(); // Here's where we get the fields
+      const fields = cls.getProperties();
       compareFieldsWithOtherFiles(
         codeAnalyzerProject,
         fields,
-        cls,
-        file.getFilePath(),
         toAnalyzeProjectFolder,
         minDataClumps,
         excludeFolders
@@ -65,9 +44,7 @@ export function DetectSmellyFields(
 
 function compareFieldsWithOtherFiles(
   codeAnalyzerProject: Project,
-  fields: PropertyDeclaration[], //first field to check
-  clazz: ClassDeclaration,
-  filepath: string,
+  fields: PropertyDeclaration[],
   projectFolder: string,
   mindataclumps: number,
   excludeFolders: string[]
@@ -79,7 +56,7 @@ function compareFieldsWithOtherFiles(
     matchFound = compareWithOtherClassesForFields(
       codeAnalyzerProject,
       fields,
-      file, // new file to check
+      file,
       matchFound,
       mindataclumps
     );
@@ -88,7 +65,7 @@ function compareFieldsWithOtherFiles(
 
 function compareWithOtherClassesForFields(
   codeAnalyzerProject: Project,
-  fields: PropertyDeclaration[], //same first field
+  fields: PropertyDeclaration[],
   filePath: string,
   matchFound: boolean,
   mindataclumps: number
@@ -110,14 +87,13 @@ function compareWithOtherClassesForFields(
 }
 
 function findMatchingFields(
-  fields: PropertyDeclaration[], // original fields
-  otherClass: ClassDeclaration, //to compare with
+  fields: PropertyDeclaration[],
+  otherClass: ClassDeclaration,
   filePath: string,
   matchFound: boolean,
   minDataClumps: number
 ) {
   const otherFields: PropertyDeclaration[] = otherClass.getProperties();
-  //TOdo compare field with otherFields both are list
 
   if (otherFields.length >= minDataClumps) {
     if (doParametersMatch(fields, otherFields, minDataClumps)) {
@@ -133,34 +109,6 @@ function findMatchingFields(
   }
 
   return matchFound;
-}
-
-function doParametersMatch(
-  params1: PropertyDeclaration[],
-  params2: PropertyDeclaration[],
-  minDataClumps: number
-) {
-  let matchMap = new Map();
-
-  for (let param1 of params1) {
-    for (let param2 of params2) {
-      if (
-        param1.getName() === param2.getName() &&
-        param1.getType().getText() === param2.getType().getText()
-      ) {
-        let matchKey = param1.getName() + param1.getType().getText();
-        matchMap.set(matchKey, (matchMap.get(matchKey) || 0) + 1);
-      }
-    }
-  }
-
-  let matchCount = 0;
-  for (let count of matchMap.values()) {
-    matchCount += count;
-    if (matchCount >= minDataClumps) return true;
-  }
-
-  return false;
 }
 
 function isFieldInDataClumpsList(filepath: string, className: string): boolean {

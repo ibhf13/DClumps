@@ -15,34 +15,16 @@ import {
   SmellyMethods,
   GlobalCalls,
 } from "../utils/Interfaces";
+import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
-
-function projectFileList(
-  toAnalyzeProjectFolder: string,
-  excludeFolders: string[]
-): string[] {
-  let project = new Project();
-  project.addSourceFilesAtPaths(toAnalyzeProjectFolder);
-
-  let sourceFiles = project.getSourceFiles().map((file) => file.getFilePath());
-
-  // Filter out excluded folders
-  if (excludeFolders && excludeFolders.length > 0) {
-    sourceFiles = sourceFiles.filter((filePath) => {
-      return !excludeFolders.some((folder) => filePath.includes(folder));
-    });
-  }
-
-  return sourceFiles;
-}
 
 export function analyzeProjectFiles(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
   minDataClumps: number,
-  withConstructor: boolean,
+  checkConstructor: boolean,
   excludeFolders: string[]
 ): DataClumpsList[] {
   let sourceFiles = codeAnalyzerProject.getSourceFiles();
@@ -54,29 +36,16 @@ export function analyzeProjectFiles(
       const methods = cls.getMethods();
       methods.forEach((method) => {
         // Skip if method is a constructor
-        if (!withConstructor) {
-          if (method.getName() === "__constructor") return;
+        if (!checkConstructor && method.getName() === "__constructor") return;
 
-          compareMethodsWithOtherFiles(
-            codeAnalyzerProject,
-            method,
-            cls,
-            file.getFilePath(),
-            toAnalyzeProjectFolder,
-            minDataClumps,
-            excludeFolders
-          );
-        } else {
-          compareMethodsWithOtherFiles(
-            codeAnalyzerProject,
-            method,
-            cls,
-            file.getFilePath(),
-            toAnalyzeProjectFolder,
-            minDataClumps,
-            excludeFolders
-          );
-        }
+        compareMethodsWithOtherFiles(
+          codeAnalyzerProject,
+          method,
+          toAnalyzeProjectFolder,
+          minDataClumps,
+          excludeFolders
+        );
+
         //compareWithParentClassMethods(method, cls, file.getFilePath());
       });
     });
@@ -89,14 +58,13 @@ export function analyzeProjectFiles(
       smellyMethodGroup = [];
     }
   });
+
   return Data_Clumps_List;
 }
 
 function compareMethodsWithOtherFiles(
   codeAnalyzerProject: Project,
   method: MethodDeclaration,
-  clazz: ClassDeclaration,
-  filepath: string,
   projectFolder: string,
   minDataClumps: number,
   excludeFolders: string[]
@@ -113,8 +81,6 @@ function compareMethodsWithOtherFiles(
       minDataClumps
     );
   });
-
-  storeSmellyMethods(matchFound, method, clazz, filepath);
 }
 
 function compareWithOtherClasses(
@@ -183,34 +149,6 @@ function findMatchingMethods(
   return matchFound;
 }
 
-function doParametersMatch(
-  params1: ParameterDeclaration[],
-  params2: ParameterDeclaration[],
-  minDataClumps: number
-) {
-  let matchMap = new Map();
-
-  for (let param1 of params1) {
-    for (let param2 of params2) {
-      if (
-        param1.getName() === param2.getName() &&
-        param1.getType().getText() === param2.getType().getText()
-      ) {
-        let matchKey = param1.getName() + param1.getType().getText();
-        matchMap.set(matchKey, (matchMap.get(matchKey) || 0) + 1);
-      }
-    }
-  }
-
-  let matchCount = 0;
-  for (let count of matchMap.values()) {
-    matchCount += count;
-    if (matchCount >= minDataClumps) return true;
-  }
-
-  return false;
-}
-//TODO handle if parameter intersection it not the same
 function isMethodInDataClumpsList(methodName: string, className: string) {
   return Data_Clumps_List.some((dataClump) =>
     dataClump.smellyMethods.some(
@@ -227,20 +165,6 @@ function isMethodInSmellymethodGroup(methodName: string, className: string) {
       smellyMethod.methodInfo.methodName === methodName &&
       smellyMethod.classInfo.className === className
   );
-}
-
-function storeSmellyMethods(
-  matchFound: boolean,
-  method: MethodDeclaration,
-  clazz: ClassDeclaration,
-  filepath: string
-) {
-  if (
-    matchFound &&
-    !isMethodInDataClumpsList(method.getName(), clazz.getName())
-  ) {
-    storeMethodInfo(method, clazz, filepath);
-  }
 }
 
 function storeMethodInfo(

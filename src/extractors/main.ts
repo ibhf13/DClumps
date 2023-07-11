@@ -1,11 +1,11 @@
 import { Project } from "ts-morph";
-import { analyzeProjectFiles } from "./MethodsDataClumpsDetector";
+import { analyzeProjectFiles } from "./DetectorSmellyMethods";
 import { createNewClassesFromDataClumpsList } from "./NewClassSmellyMethods";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
-import { DetectSmellyFields } from "./SmellyFieldDetector";
+import { DetectSmellyFields } from "./DetectorSmellyFields";
 import { createNewClassesFromSmellyFieldDataClumpsList } from "./NewClassSmellyFields";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
@@ -76,7 +76,7 @@ function main() {
 
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
-  // //Analyze the project files for data clumps
+  //Analyze the project files for data clumps
   // let dataClumpsList = analyzeProjectFiles(
   //   codeAnalyzerProject,
   //   toAnalyzeProjectFolder,

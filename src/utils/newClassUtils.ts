@@ -1,12 +1,5 @@
-// newClassUtils.ts
-
 import { ClassDeclaration, Project, Scope } from "ts-morph";
-import {
-  ParameterInfo,
-  NewClassInfo,
-  DataClumpsType,
-  SmellyMethods,
-} from "./Interfaces";
+import { ParameterInfo, NewClassInfo, DataClumpsType } from "./Interfaces";
 import { existsSync } from "fs";
 
 export function generateUniqueFileName(
