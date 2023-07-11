@@ -1,12 +1,12 @@
 import { Project } from "ts-morph";
 import { analyzeProjectFiles } from "./MethodsDataClumpsDetector";
-import { createNewClassesFromDataClumpsList } from "./SmellyMethodsNewClass";
+import { createNewClassesFromDataClumpsList } from "./NewClassSmellyMethods";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
 import { DetectSmellyFields } from "./SmellyFieldDetector";
-import { createNewClassesFromSmellyFieldDataClumpsList } from "./SmellyFieldsNewClass";
+import { createNewClassesFromSmellyFieldDataClumpsList } from "./NewClassSmellyFields";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
