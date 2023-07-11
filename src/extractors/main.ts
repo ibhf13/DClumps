@@ -1,5 +1,5 @@
 import { Project } from "ts-morph";
-import { analyzeProjectFiles } from "./DataClumpsDetector";
+import { analyzeProjectFiles } from "./MethodsDataClumpsDetector";
 import { createNewClassesFromDataClumpsList } from "./SmellyMethodsNewClass";
 import { writeFileSync } from "fs";
 import * as fs from "fs";

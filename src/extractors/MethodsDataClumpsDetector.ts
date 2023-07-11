@@ -4,7 +4,6 @@ import {
   Node,
   ParameterDeclaration,
   Project,
-  PropertyDeclaration,
   ReferenceFindableNode,
   SyntaxKind,
 } from "ts-morph";
@@ -15,11 +14,8 @@ import {
   DataClumpsList,
   SmellyMethods,
   GlobalCalls,
-  NewClassInfo,
-  SmellyFields,
 } from "../utils/Interfaces";
 
-let smellyFieldGroup: SmellyFields[] = [];
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 

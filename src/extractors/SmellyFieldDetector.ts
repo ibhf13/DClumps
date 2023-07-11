@@ -85,7 +85,7 @@ function compareFieldsWithOtherFiles(
     );
   });
 
-  // storeSmellyFields(matchFound, fields, clazz, filepath); // Stores the field if it is "smelly"
+  storeSmellyFields(matchFound, fields, clazz, filepath); // Stores the field if it is "smelly"
 }
 
 function compareWithOtherClassesForFields(
