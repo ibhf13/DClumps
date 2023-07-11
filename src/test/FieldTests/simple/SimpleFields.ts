@@ -9,14 +9,13 @@ class Fields2 {
 }
 
 class Fields3 {
-  fieldsX = 10;
   fieldsY: number;
   fieldsString: string;
-  fieldBoolean1: Boolean;
+  fieldBoolean1: Boolean = true;
 
   normalMethod(): void {
-    let temp = this.fieldsX + 20;
-    this.fieldsY = 10 * this.fieldsX;
+    let temp = this.fieldsY + 20;
+    this.fieldsY = 10 * this.fieldsY;
     this.fieldsString = "new string";
   }
 }

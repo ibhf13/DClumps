@@ -1,11 +1,12 @@
 import { Project } from "ts-morph";
 import { analyzeProjectFiles } from "./DataClumpsDetector";
-import { createNewClassesFromDataClumpsList } from "./extractNewClasses";
+import { createNewClassesFromDataClumpsList } from "./SmellyMethodsNewClass";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
-import { DetectSmellyFields } from "./DataFieldDetector";
+import { DetectSmellyFields } from "./SmellyFieldDetector";
+import { createNewClassesFromSmellyFieldDataClumpsList } from "./SmellyFieldsNewClass";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
@@ -81,21 +82,35 @@ function main() {
     withConstructor,
     excludedFolders
   );
-  // let dataClumpsList = DetectSmellyFields(
-  //   codeAnalyzerProject,
-  //   toAnalyzeProjectFolder,
-  //   MIN_MATCHES,
-  //   excludedFolders
-  // );
-  console.log(`found ${dataClumpsList.length} dataclumps`);
-
   writeFileSync(
     "./src/output/jsonDclumps/Data_Clumps_List.json",
     JSON.stringify(dataClumpsList, null, 2)
   );
-  console.log("\n\n\nStart refactoring \n...");
+  console.log(`found ${dataClumpsList.length} Smelly Methods dataclumps`);
 
-  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  //console.log("\n\n\nStart refactoring \n...");
+  //createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+
+  let dataClumpsListWithFields = DetectSmellyFields(
+    codeAnalyzerProject,
+    toAnalyzeProjectFolder,
+    MIN_MATCHES,
+    excludedFolders
+  );
+
+  console.log(
+    `found ${dataClumpsListWithFields.length} SmellyFields dataclumps`
+  );
+
+  writeFileSync(
+    "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
+    JSON.stringify(dataClumpsListWithFields, null, 2)
+  );
+
+  createNewClassesFromSmellyFieldDataClumpsList(
+    dataClumpsListWithFields,
+    outputPath
+  );
 }
 
 // Run the main function

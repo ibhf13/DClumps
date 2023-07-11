@@ -86,11 +86,7 @@ export function analyzeProjectFiles(
     });
 
     if (smellyMethodGroup.length > 1) {
-      console.log(
-        `Detected ${
-          smellyMethodGroup.length
-        } smelly methods in file: ${file.getFilePath()}`
-      );
+      console.log(`Detected ${smellyMethodGroup.length} smelly methods`);
       Data_Clumps_List.push({
         smellyMethods: [...smellyMethodGroup],
       });

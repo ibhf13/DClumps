@@ -52,7 +52,7 @@ export function DetectSmellyFields(
       );
     });
     if (smellyFieldGroup.length > 1) {
-      console.log(`Detected ${smellyFieldGroup.length}`);
+      console.log(`\nDetected ${smellyFieldGroup.length} Smelly Fields\n`);
       Data_Clumps_List.push({
         smellyFieldGroup: [...smellyFieldGroup],
       });
