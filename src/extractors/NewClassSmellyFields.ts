@@ -6,6 +6,14 @@ import {
   SmellyFields,
 } from "../utils/Interfaces";
 import { existsSync } from "fs";
+import {
+  exportNewFileData,
+  generateClassVariables,
+  generateConstructor,
+  generateGettersAndSetters,
+  generateUniqueFileName,
+  initializeNewClass,
+} from "../utils/newClassUtils";
 
 const project = new Project();
 
@@ -67,18 +75,6 @@ function getNewClassNameFromFieldGroup(smellyFieldGroup: SmellyFields) {
     .join("");
 }
 
-function generateUniqueFileName(baseName: string, outputPath: string): string {
-  let counter = 0;
-  let fileName = `${baseName}.ts`;
-
-  while (existsSync(`${outputPath}${fileName}`)) {
-    counter++;
-    fileName = `${baseName}${counter}.ts`;
-  }
-
-  return fileName;
-}
-
 function createAndGetNewClass(
   newClassName: string,
   fileName: string,
@@ -88,96 +84,12 @@ function createAndGetNewClass(
   const newClassDeclaration = initializeNewClass(
     fileName,
     newClassName,
-    outputPath
+    outputPath,
+    project
   );
   generateClassVariables(smellyFieldGroup, newClassDeclaration);
   generateConstructor(smellyFieldGroup, newClassDeclaration);
   generateGettersAndSetters(smellyFieldGroup, newClassDeclaration);
 
   return newClassDeclaration;
-}
-
-function initializeNewClass(
-  fileName: string,
-  className: string,
-  outputPath: string
-) {
-  const filePath = outputPath + fileName;
-  const newClassFile = project.createSourceFile(filePath);
-  return newClassFile.addClass({ name: className, isExported: true });
-}
-
-function generateClassVariables(
-  smellyFieldGroup: SmellyFields,
-  newClassDeclaration: ClassDeclaration
-) {
-  smellyFieldGroup.fieldInfo.forEach((field: ParameterInfo) => {
-    newClassDeclaration.addProperty({
-      name: field.name,
-      type: field.type,
-      initializer: field.value ? `${field.value}` : "undefined",
-      scope: Scope.Private,
-    });
-  });
-}
-
-function generateConstructor(
-  smellyFieldGroup: SmellyFields,
-  newClassDeclaration: ClassDeclaration
-) {
-  const constructorDeclaration = newClassDeclaration.addConstructor();
-
-  smellyFieldGroup.fieldInfo.forEach((field: ParameterInfo, index: number) => {
-    constructorDeclaration.addParameter({
-      name: field.name,
-      type: field.type,
-      initializer: field.value ? `${field.value}` : "undefined",
-    });
-
-    if (index === 0) {
-      constructorDeclaration.setBodyText((writer) =>
-        writer.write(`this.${field.name} = ${field.name};`)
-      );
-    } else {
-      constructorDeclaration.addStatements((writer) =>
-        writer.write(`this.${field.name} = ${field.name};`)
-      );
-    }
-  });
-}
-
-function generateGettersAndSetters(
-  smellyFieldGroup: SmellyFields,
-  newClassDeclaration: ClassDeclaration
-) {
-  smellyFieldGroup.fieldInfo.forEach((field: ParameterInfo) => {
-    const capitalizedFieldName =
-      field.name.charAt(0).toUpperCase() + field.name.slice(1);
-
-    newClassDeclaration.addMethod({
-      name: `get${capitalizedFieldName}`,
-      returnType: field.type,
-      statements: `return this.${field.name};`,
-    });
-
-    newClassDeclaration.addMethod({
-      name: `set${capitalizedFieldName}`,
-      parameters: [{ name: field.name, type: field.type }],
-      statements: `this.${field.name} = ${field.name};`,
-    });
-  });
-}
-
-function exportNewFileData(
-  newClassDeclaration: ClassDeclaration,
-  fileName: string,
-  parameters: ParameterInfo[],
-  outputPath: string
-): NewClassInfo {
-  const filePath = outputPath + fileName;
-  return {
-    className: newClassDeclaration.getName(),
-    filepath: filePath,
-    parameters: parameters,
-  };
 }

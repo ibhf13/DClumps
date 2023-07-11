@@ -84,8 +84,6 @@ function compareFieldsWithOtherFiles(
       mindataclumps
     );
   });
-
-  storeSmellyFields(matchFound, fields, clazz, filepath); // Stores the field if it is "smelly"
 }
 
 function compareWithOtherClassesForFields(
@@ -184,17 +182,6 @@ function isFieldInSmellyFieldGroup(
       smellyField.classInfo.filepath === filepath &&
       smellyField.classInfo.className === className
   );
-}
-
-function storeSmellyFields(
-  matchFound: boolean,
-  field: PropertyDeclaration[],
-  clazz: ClassDeclaration,
-  filePath: string
-) {
-  if (matchFound && !isFieldInDataClumpsList(filePath, clazz.getName())) {
-    storeFieldInfo(field, clazz, filePath);
-  }
 }
 
 function storeFieldInfo(

@@ -63,3 +63,5 @@ export interface DataClumpsList {
   smellyFunctions?: SmellyFunction[];
   smellyFieldGroup?: SmellyFields[];
 }
+
+export type DataClumpsType = SmellyMethods | SmellyFields;

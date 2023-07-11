@@ -1,12 +1,14 @@
-import { ClassDeclaration, Project, Scope } from "ts-morph";
-import {
-  DataClumpsList,
-  SmellyMethods,
-  ParameterInfo,
-  NewClassInfo,
-} from "../utils/Interfaces";
-import { existsSync } from "fs";
+import { Project } from "ts-morph";
+import { DataClumpsList, SmellyMethods } from "../utils/Interfaces";
 import { refactorMethods } from "./DataclumpsRefactoring";
+import {
+  exportNewFileData,
+  generateClassVariables,
+  generateConstructor,
+  generateGettersAndSetters,
+  generateUniqueFileName,
+  initializeNewClass,
+} from "../utils/newClassUtils";
 
 const project = new Project();
 
@@ -73,18 +75,6 @@ function getNewClassName(leastParameterMethod: SmellyMethods) {
     .join("");
 }
 
-function generateUniqueFileName(baseName: string, outputPath: string): string {
-  let counter = 0;
-  let fileName = `${baseName}.ts`;
-
-  while (existsSync(`${outputPath}${fileName}`)) {
-    counter++;
-    fileName = `${baseName}${counter}.ts`;
-  }
-
-  return fileName;
-}
-
 function createAndGetNewClass(
   newClassName: string,
   fileName: string,
@@ -94,96 +84,12 @@ function createAndGetNewClass(
   const newClassDeclaration = initializeNewClass(
     fileName,
     newClassName,
-    outputPath
+    outputPath,
+    project
   );
   generateClassVariables(leastParameterMethod, newClassDeclaration);
   generateConstructor(leastParameterMethod, newClassDeclaration);
   generateGettersAndSetters(leastParameterMethod, newClassDeclaration);
 
   return newClassDeclaration;
-}
-
-function initializeNewClass(
-  fileName: string,
-  className: string,
-  outputPath: string
-) {
-  const filePath = outputPath + fileName;
-  const newClassFile = project.createSourceFile(filePath);
-  return newClassFile.addClass({ name: className, isExported: true });
-}
-
-function generateClassVariables(
-  smellyMethod: SmellyMethods,
-  newClassDeclaration: ClassDeclaration
-) {
-  smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
-    newClassDeclaration.addProperty({
-      name: parameter.name,
-      type: parameter.type,
-      scope: Scope.Private,
-    });
-  });
-}
-
-function generateConstructor(
-  smellyMethod: SmellyMethods,
-  newClassDeclaration: ClassDeclaration
-) {
-  const constructorDeclaration = newClassDeclaration.addConstructor();
-
-  smellyMethod.methodInfo.parameters.forEach(
-    (parameter: ParameterInfo, index: number) => {
-      constructorDeclaration.addParameter({
-        name: parameter.name,
-        type: parameter.type,
-      });
-
-      if (index === 0) {
-        constructorDeclaration.setBodyText((writer) =>
-          writer.write(`this.${parameter.name} = ${parameter.name};`)
-        );
-      } else {
-        constructorDeclaration.addStatements((writer) =>
-          writer.write(`this.${parameter.name} = ${parameter.name};`)
-        );
-      }
-    }
-  );
-}
-
-function generateGettersAndSetters(
-  smellyMethod: SmellyMethods,
-  newClassDeclaration: ClassDeclaration
-) {
-  smellyMethod.methodInfo.parameters.forEach((parameter: ParameterInfo) => {
-    const capitalizedParamName =
-      parameter.name.charAt(0).toUpperCase() + parameter.name.slice(1);
-
-    newClassDeclaration.addMethod({
-      name: `get${capitalizedParamName}`,
-      returnType: parameter.type,
-      statements: `return this.${parameter.name};`,
-    });
-
-    newClassDeclaration.addMethod({
-      name: `set${capitalizedParamName}`,
-      parameters: [{ name: parameter.name, type: parameter.type }],
-      statements: `this.${parameter.name} = ${parameter.name};`,
-    });
-  });
-}
-
-function exportNewFileData(
-  newClassDeclaration: ClassDeclaration,
-  fileName: string,
-  parameters: ParameterInfo[],
-  outputPath: string
-): NewClassInfo {
-  const filePath = outputPath + fileName;
-  return {
-    className: newClassDeclaration.getName(),
-    filepath: filePath,
-    parameters: parameters,
-  };
 }
