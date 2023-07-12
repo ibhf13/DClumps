@@ -1,11 +1,15 @@
 2. make more test
-3. handle FieldClumps
 
-4. handle inheritance
-5. handle interfaces
-6. handle intersect
-7. test Project
-8. acceptance Criteria
+3. handle FieldClumps refactoring
+4. handle FieldClumps calls
+
+5. handle inheritance
+6. handle interfaces
+7. handle intersect
+8. test Project
+9. acceptance Criteria
+10. docs
+11. unit test
 
 current issues:
 handling interfaces if the methode implement interfaces do somthing
