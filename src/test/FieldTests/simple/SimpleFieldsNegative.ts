@@ -23,7 +23,7 @@ class Fields33 {
     fieldsX: number,
     fieldsStringFieldsYInstance: FieldsStringFieldsY
   ) {
-    this.fieldsX = 10;
+    this.fieldsX = fieldsX;
     this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
   }
   normalMethod(): void {
