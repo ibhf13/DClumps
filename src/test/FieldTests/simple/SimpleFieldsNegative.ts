@@ -1,9 +1,11 @@
-import { fieldsStringFieldsY } from "./SimpleFieldsNegativeNewClassCreated";
+import { FieldsStringFieldsY } from "./SimpleFieldsNegativeNewClassCreated";
 
 class Fields22 {
-  fieldsStringFieldsYInstance: fieldsStringFieldsY = new fieldsStringFieldsY(
-    "name"
-  );
+  fieldsStringFieldsYInstance: FieldsStringFieldsY = new FieldsStringFieldsY();
+
+  constructor() {
+    this.fieldsStringFieldsYInstance.setFieldsString("name");
+  }
 
   normalMethod(): void {
     this.fieldsStringFieldsYInstance.setFieldsY(50);
@@ -15,8 +17,15 @@ class Fields22 {
 
 class Fields33 {
   fieldsX = 10;
-  fieldsStringFieldsYInstance: fieldsStringFieldsY = new fieldsStringFieldsY();
+  fieldsStringFieldsYInstance: FieldsStringFieldsY;
 
+  constructor(
+    fieldsX: number,
+    fieldsStringFieldsYInstance: FieldsStringFieldsY
+  ) {
+    this.fieldsX = 10;
+    this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
+  }
   normalMethod(): void {
     let temp = this.fieldsX + 20;
     this.fieldsStringFieldsYInstance.setFieldsY(10 * this.fieldsX);

@@ -14,6 +14,7 @@ import {
   generateUniqueFileName,
   initializeNewClass,
 } from "../utils/newClassUtils";
+import { refactorSmellyFields } from "./RefactoringSmellyFields";
 
 const project = new Project();
 
@@ -48,6 +49,12 @@ function createNewClass(smellyFieldGroup, outputPath: string) {
     fileName,
     leastParameterFieldGroup.fieldInfo,
     outputPath
+  );
+  refactorSmellyFields(
+    newClassInfo,
+    leastParameterFieldGroup,
+    smellyFieldGroup,
+    project
   );
 
   console.log(

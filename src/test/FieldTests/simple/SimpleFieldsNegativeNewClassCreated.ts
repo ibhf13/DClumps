@@ -1,4 +1,4 @@
-export class fieldsStringFieldsY {
+export class FieldsStringFieldsY {
   private fieldsString: string;
   private fieldsY: number;
   // add default value if not exist || null

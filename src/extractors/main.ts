@@ -77,23 +77,23 @@ function main() {
   codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
   //Analyze the project files for data clumps
-  let dataClumpsList = analyzeProjectFiles(
-    codeAnalyzerProject,
-    toAnalyzeProjectFolder,
-    MIN_MATCHES,
-    withConstructor,
-    excludedFolders
-  );
-  writeFileSync(
-    "./src/output/jsonDclumps/Data_Clumps_List.json",
-    JSON.stringify(dataClumpsList, null, 2)
-  );
-  console.log(`found ${dataClumpsList.length} Smelly Methods dataclumps`);
+  // let dataClumpsList = analyzeProjectFiles(
+  //   codeAnalyzerProject,
+  //   toAnalyzeProjectFolder,
+  //   MIN_MATCHES,
+  //   withConstructor,
+  //   excludedFolders
+  // );
+  // writeFileSync(
+  //   "./src/output/jsonDclumps/Data_Clumps_List.json",
+  //   JSON.stringify(dataClumpsList, null, 2)
+  // );
+  // console.log(`found ${dataClumpsList.length} Smelly Methods dataclumps`);
 
-  console.log("\n\n\nStart refactoring \n...");
-  console.log("Create new Classes for Smelly Methods");
+  // console.log("\n\n\nStart refactoring \n...");
+  // console.log("Create new Classes for Smelly Methods");
 
-  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  // createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
 
   codeAnalyzerProject2.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 

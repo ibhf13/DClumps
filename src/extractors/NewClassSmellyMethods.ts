@@ -1,6 +1,6 @@
 import { Project } from "ts-morph";
 import { DataClumpsList, SmellyMethods } from "../utils/Interfaces";
-import { refactorMethods } from "./DataclumpsRefactoring";
+import { refactorMethods } from "./RefactoringSmellyMethods";
 import {
   exportNewFileData,
   generateClassVariables,
