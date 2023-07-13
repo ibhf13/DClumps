@@ -6,13 +6,15 @@
    for the user choice will be new class created and then refactor it first then the rest of the group
    else should be the least parameter method
 
+5. code Optimierung 
+6. unit test
+7. docs
 
-5. handle inheritance
-6. handle interfaces
-7. handle intersect
-8. unit test
-9. acceptance Criteria
-10. docs
+8. handle inheritance
+9. handle interfaces
+10. handle intersect
+11. acceptance Criteria
+
 11. report
 12. gui
 
