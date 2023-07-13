@@ -9,7 +9,8 @@ class Fields2 {
     this.fieldsY = 50;
     this.fieldsString = this.fieldsY.toString();
     let fields3Instance = new Fields3();
-    if (fields3Instance.fieldsY === fields3Instance.fieldsY + 9);
+    if (fields3Instance.fieldsY === fields3Instance.fieldsY + 9) {
+    }
     let testObj = (fields3Instance.fieldsString =
       fields3Instance.fieldsY.toString() + "hi");
     let obj = new Fields22(new FieldsStringFieldsY("name", undefined), 10);
