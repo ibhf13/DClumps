@@ -1,18 +1,20 @@
 1. make more test
-2. Refactoring up to user (the method choice)
+2. saving calls list in Detection like methods
+3. handle FieldClumps calls
+
+4. Refactoring up to user (the method choice)
    for the user choice will be new class created and then refactor it first then the rest of the group
    else should be the least parameter method
 
-3. handle FieldClumps refactoring
-4. handle FieldClumps calls
 
 5. handle inheritance
 6. handle interfaces
 7. handle intersect
-8. test Project
+8. unit test
 9. acceptance Criteria
 10. docs
-11. unit test
+11. report
+12. gui
 
 current issues:
 handling interfaces if the methode implement interfaces do somthing
