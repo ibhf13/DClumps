@@ -4,6 +4,7 @@ class Fields22 {
   fieldsStringFieldsYInstance: FieldsStringFieldsY = new FieldsStringFieldsY();
 
   constructor() {
+    this.fieldsStringFieldsYInstance = new FieldsStringFieldsY();
     this.fieldsStringFieldsYInstance.setFieldsString("name");
   }
 
@@ -26,6 +27,10 @@ class Fields33 {
     this.fieldsX = fieldsX;
     this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
   }
+  // constructor() {
+  //   this.fieldsX = fieldsX;
+  //   this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
+  // }
   normalMethod(): void {
     let temp = this.fieldsX + 20;
     this.fieldsStringFieldsYInstance.setFieldsY(10 * this.fieldsX);
