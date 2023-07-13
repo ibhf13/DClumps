@@ -7,7 +7,9 @@ import {
 } from "ts-morph";
 import * as path from "path";
 import {
+  CallsInfo,
   DataClumpsList,
+  GlobalCalls,
   NewClassInfo,
   ParameterInfo,
   SmellyMethods,
@@ -105,7 +107,11 @@ function refactorSelectedMethod(
   updateMethodBody(newClassInfo, method, sharedParameters);
 
   refactorMethodCallsUsingThis(newClassInfo, refactoredMethod, allMethods);
-  refactorMethodInOtherFile(newClassInfo, refactoredMethod, sourceFile);
+  const globalCalls = refactoredMethod.callsInfo.callsList.callsGlob;
+  globalCalls.forEach((call) => {
+    const callFile = project.addSourceFileAtPath(call.classInfo.filepath);
+    refactorMethodInOtherFile(newClassInfo, refactoredMethod, callFile);
+  });
 
   project.saveSync();
 }
@@ -169,7 +175,6 @@ function refactorMethodCallsUsingThis(
     });
   });
 }
-
 function refactorMethodInOtherFile(
   newClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
