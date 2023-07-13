@@ -1,10 +1,15 @@
 import { FieldsStringFieldsY } from "./SimpleFieldsNegativeNewClassCreated";
 
-class Fields22 {
+export class Fields22 {
   fieldsStringFieldsYInstance: FieldsStringFieldsY = new FieldsStringFieldsY(
     "name",
     undefined
   );
+  fieldZ: number = 10;
+  constructor(obj: FieldsStringFieldsY, fieldZ: number) {
+    this.fieldZ = fieldZ;
+    this.fieldsStringFieldsYInstance = obj;
+  }
 
   normalMethod(): void {
     this.fieldsStringFieldsYInstance.setFieldsY(50);
