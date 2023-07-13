@@ -15,7 +15,6 @@ import {
   NewClassInfo,
   ParameterInfo,
   SmellyFields,
-  SmellyMethods,
 } from "../utils/Interfaces";
 
 export function refactorSmellyFields(
@@ -92,7 +91,7 @@ function refactorSelectedClassFields(
   const classToRefactor = sourceFile.getClass(
     refactoredField.classInfo.className
   );
-  const instanceName = toCamelCase(newClassInfo.className) + "Instance";
+  const instanceName = getInstanceName(newClassInfo);
 
   const sharedParameters = updateFieldsInClass(newClassInfo, classToRefactor);
   classToRefactor.getMethods().forEach((method) => {
@@ -149,7 +148,7 @@ function updateFieldsInClass(
     property?.remove();
   });
 
-  const instanceName = toCamelCase(newClassInfo.className) + "Instance";
+  const instanceName = getInstanceName(newClassInfo);
 
   const instanceParamsStr = instanceParams.join(", ");
 
