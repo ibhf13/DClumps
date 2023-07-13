@@ -1,4 +1,7 @@
-2. make more test
+1. make more test
+2. Refactoring up to user (the method choice)
+   for the user choice will be new class created and then refactor it first then the rest of the group
+   else should be the least parameter method
 
 3. handle FieldClumps refactoring
 4. handle FieldClumps calls
