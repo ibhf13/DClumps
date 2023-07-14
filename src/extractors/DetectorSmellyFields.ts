@@ -1,9 +1,16 @@
-import { ClassDeclaration, Project, PropertyDeclaration } from "ts-morph";
+import {
+  ClassDeclaration,
+  Node,
+  Project,
+  PropertyDeclaration,
+  SyntaxKind,
+} from "ts-morph";
 import {
   ClassInfo,
   ParameterInfo,
   DataClumpsList,
   SmellyFields,
+  GlobalCalls,
 } from "../utils/Interfaces";
 import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 
@@ -133,11 +140,11 @@ function isFieldInSmellyFieldGroup(
 }
 
 function storeFieldInfo(
-  field: PropertyDeclaration[],
+  fields: PropertyDeclaration[],
   clazz: ClassDeclaration,
   filepath: string
 ) {
-  const fieldDetails: ParameterInfo[] = field.map((fieldVariable) => ({
+  const fieldDetails: ParameterInfo[] = fields.map((fieldVariable) => ({
     name: fieldVariable.getName(),
     type: fieldVariable.getType().getText(),
     value: fieldVariable.getInitializer()?.getText(),
@@ -151,7 +158,106 @@ function storeFieldInfo(
   const smellyField: SmellyFields = {
     fieldInfo: fieldDetails,
     classInfo: classDetails,
+    callsInfo: {
+      callsList: {
+        callsInSame: 0,
+        callsGlob: [],
+      },
+      callsCount: 0,
+    },
   };
 
+  analyzeFieldReferences(smellyField, fields, clazz);
+
   smellyFieldGroup.push(smellyField);
+}
+
+function countFieldReferencesInSameClass(
+  references: Node[],
+  clazz: ClassDeclaration
+): number {
+  const referencedClasses: string[] = [];
+
+  for (const ref of references) {
+    const refClass = ref.getFirstAncestorByKind(SyntaxKind.ClassDeclaration);
+    if (!refClass) continue;
+
+    const isSameClass = refClass.getName() === clazz.getName();
+    if (isSameClass) {
+      const className = refClass.getName();
+      if (!referencedClasses.includes(className)) {
+        referencedClasses.push(className);
+      }
+    }
+  }
+
+  return referencedClasses.length;
+}
+
+function getGlobalFieldReferences(
+  references: Node[],
+  clazz: ClassDeclaration
+): GlobalCalls[] {
+  let globalCalls: GlobalCalls[] = [];
+  const referencedClasses = new Map<string, ClassInfo>();
+
+  for (const ref of references) {
+    const refClass = ref.getFirstAncestorByKind(SyntaxKind.ClassDeclaration);
+    if (!refClass || refClass.getName() === clazz.getName()) continue;
+
+    const key = refClass.getName() || refClass.getSourceFile().getFilePath();
+    if (referencedClasses.has(key)) continue;
+
+    let foundGlobalCall = globalCalls.find(
+      (call) =>
+        call.classInfo.className === refClass.getName() &&
+        call.classInfo.filepath === refClass.getSourceFile().getFilePath()
+    );
+
+    if (foundGlobalCall) {
+      foundGlobalCall.callsGlobCount++;
+    } else {
+      globalCalls.push({
+        classInfo: {
+          className: refClass.getName() || "",
+          filepath: refClass.getSourceFile().getFilePath(),
+        },
+        callsGlobCount: 1,
+      });
+    }
+
+    referencedClasses.set(key, {
+      className: refClass.getName() || "",
+      filepath: refClass.getSourceFile().getFilePath(),
+    });
+  }
+
+  return globalCalls;
+}
+
+function analyzeFieldReferences(
+  smellyField: SmellyFields,
+  fields: PropertyDeclaration[],
+  clazz: ClassDeclaration
+) {
+  let references: Node[] = [];
+
+  fields.forEach((field) => {
+    references = references.concat(field.findReferencesAsNodes());
+  });
+
+  const callsInSameClass = countFieldReferencesInSameClass(references, clazz);
+  const globalCalls = getGlobalFieldReferences(references, clazz);
+
+  let totalCallsGlobCount = 0;
+  globalCalls.forEach((call) => {
+    totalCallsGlobCount += call.callsGlobCount;
+  });
+
+  smellyField.callsInfo.callsList = {
+    callsInSame: callsInSameClass,
+    callsGlob: globalCalls,
+  };
+
+  smellyField.callsInfo.callsCount = callsInSameClass + totalCallsGlobCount;
 }
