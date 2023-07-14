@@ -100,13 +100,6 @@ function refactorSelectedClassFields(
     refactorMethodBody(method, newClassInfo, classToRefactor, instanceName);
     updateWithGetter(classToRefactor, sharedParameters, instanceName);
   });
-  //TODO identify ziel Class
-  refactorOtherFiles(
-    newClassInfo,
-    project,
-    refactoredField.classInfo.filepath,
-    classToRefactor
-  );
 
   project.saveSync();
 }
@@ -176,6 +169,11 @@ function refactorMethodBody(
   instance: string
 ) {
   const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
+
+  const classPropertyNames = classToRefactor
+    .getProperties()
+    .map((prop) => prop.getName());
+
   method
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
     .forEach((expressionStatement) => {
@@ -183,12 +181,23 @@ function refactorMethodBody(
 
       if (expression instanceof BinaryExpression) {
         expressions.reverse().forEach((binaryExpression) => {
-          const newExpression = processExpression(
-            binaryExpression,
-            instance,
-            newClassInfo
-          );
-          binaryExpression.replaceWithText(newExpression);
+          const left = binaryExpression.getLeft();
+          const right = binaryExpression.getRight();
+
+          // Only refactor expressions that are related to the class that is being refactored
+          if (
+            (left instanceof PropertyAccessExpression &&
+              classPropertyNames.includes(left.getName())) ||
+            (right instanceof PropertyAccessExpression &&
+              classPropertyNames.includes(right.getName()))
+          ) {
+            const newExpression = processExpression(
+              binaryExpression,
+              instance,
+              newClassInfo
+            );
+            binaryExpression.replaceWithText(newExpression);
+          }
         });
       }
     });
@@ -235,13 +244,15 @@ function processExpression(
   if (assignment) {
     if (
       left instanceof PropertyAccessExpression &&
-      parameterExists(left.getName(), newClassInfo.parameters)
+      parameterExists(left.getName(), newClassInfo.parameters) &&
+      left.getExpression().getKind() === SyntaxKind.ThisKeyword
     ) {
       leftText = `this.${instance}.set${toCamelCase(left.getName())}`;
     }
     if (
       right instanceof PropertyAccessExpression &&
-      parameterExists(right.getName(), newClassInfo.parameters)
+      parameterExists(right.getName(), newClassInfo.parameters) &&
+      right.getExpression().getKind() === SyntaxKind.ThisKeyword
     ) {
       rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
     }
@@ -249,13 +260,15 @@ function processExpression(
   } else {
     if (
       left instanceof PropertyAccessExpression &&
-      parameterExists(left.getName(), newClassInfo.parameters)
+      parameterExists(left.getName(), newClassInfo.parameters) &&
+      left.getExpression().getKind() === SyntaxKind.ThisKeyword
     ) {
       leftText = `this.${instance}.get${toCamelCase(left.getName())}()`;
     }
     if (
       right instanceof PropertyAccessExpression &&
-      parameterExists(right.getName(), newClassInfo.parameters)
+      parameterExists(right.getName(), newClassInfo.parameters) &&
+      right.getExpression().getKind() === SyntaxKind.ThisKeyword
     ) {
       rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
     }
@@ -263,103 +276,4 @@ function processExpression(
       .getOperatorToken()
       .getText()} ${rightText}`;
   }
-}
-
-function refactorOtherFiles(
-  newClassInfo: NewClassInfo,
-  project: Project,
-  filePath: string,
-  refactoreClass
-) {
-  const sourceFile = project.addSourceFileAtPath(filePath);
-  sourceFile.forEachDescendant((node) => {
-    if (node instanceof VariableDeclaration) {
-      console.log(`Refactoring variable declaration: ${node.getText()}`);
-
-      if (node.getInitializerIfKind(SyntaxKind.NewExpression)) {
-        refactorNoArgInstance(newClassInfo, node, sourceFile);
-        refactorWithArgInstance(newClassInfo, node, sourceFile, refactoreClass);
-      }
-    }
-  });
-  project.saveSync();
-}
-
-function refactorNoArgInstance(
-  newClassInfo: NewClassInfo,
-  node: VariableDeclaration,
-  sourceFile: SourceFile
-) {
-  const instanceName = getInstanceName(newClassInfo);
-  const initializer = node.getInitializerIfKind(SyntaxKind.NewExpression);
-  if (
-    initializer &&
-    initializer.getExpression().getText() === newClassInfo.className
-  ) {
-    node.setInitializer(`new ${newClassInfo.className}()`);
-    refactorVariableDeclaration(
-      newClassInfo,
-      node.getName(),
-      instanceName,
-      sourceFile
-    );
-  }
-}
-
-function refactorWithArgInstance(
-  newClassInfo: NewClassInfo,
-  node: VariableDeclaration,
-  sourceFile: SourceFile,
-  classToRefactor
-) {
-  const instanceName = getInstanceName(newClassInfo);
-  const initializer = node.getInitializerIfKind(SyntaxKind.NewExpression);
-  console.log("+++++++++++++++++++", initializer.getExpression().getText());
-  console.log("--------------", classToRefactor.getName());
-  if (
-    initializer &&
-    initializer.getExpression().getText() === classToRefactor.getName()
-  ) {
-    const argumentStr = initializer
-      .getArguments()
-      .map((arg) => arg.getText())
-      .join(", ");
-    node.setInitializer(
-      `new ${classToRefactor.getName()}(new ${
-        newClassInfo.className
-      }(${argumentStr}))`
-    );
-    refactorVariableDeclaration(
-      newClassInfo,
-      node.getName(),
-      classToRefactor.getName(),
-      sourceFile
-    );
-  }
-}
-
-function refactorVariableDeclaration(
-  newClassInfo: NewClassInfo,
-  variableName: string,
-  instanceName: string,
-  sourceFile: SourceFile
-) {
-  console.log("-----------------------");
-
-  sourceFile.forEachDescendant((descendantNode) => {
-    if (descendantNode instanceof PropertyAccessExpression) {
-      console.log("**************************");
-
-      const accessedExpression = descendantNode.getExpression();
-      if (
-        accessedExpression.getText() === variableName &&
-        parameterExists(descendantNode.getName(), newClassInfo.parameters)
-      ) {
-        accessedExpression.replaceWithText(`${variableName}.${instanceName}`);
-        descendantNode.replaceWithText(
-          `${instanceName}.get${toCamelCase(descendantNode.getName())}()`
-        );
-      }
-    }
-  });
 }
