@@ -1,3 +1,17 @@
+bugs:
+1. if the class has constructor delete the common fields from constructor body and arguments
+2. updating getters it doesnt check of the first statement was this
+3. argument withnorArgs shouldnt exist "better check"
+4. check binaryExpression correctly
+
+
+where can the field call happened in other files?
+1. in class variables
+2. in constructor
+3. in methods parameter
+4. in method body
+
+
 1. make more test
 2. saving calls list in Detection like methods
 3. handle FieldClumps calls

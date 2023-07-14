@@ -2,11 +2,13 @@ import {
   BinaryExpression,
   Block,
   ClassDeclaration,
+  Identifier,
   MethodDeclaration,
   Project,
   PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
+  VariableDeclaration,
   ts,
 } from "ts-morph";
 import * as path from "path";
@@ -98,6 +100,13 @@ function refactorSelectedClassFields(
     refactorMethodBody(method, newClassInfo, classToRefactor, instanceName);
     updateWithGetter(classToRefactor, sharedParameters, instanceName);
   });
+  //TODO identify ziel Class
+  refactorOtherFiles(
+    newClassInfo,
+    project,
+    refactoredField.classInfo.filepath,
+    classToRefactor
+  );
 
   project.saveSync();
 }
@@ -254,4 +263,103 @@ function processExpression(
       .getOperatorToken()
       .getText()} ${rightText}`;
   }
+}
+
+function refactorOtherFiles(
+  newClassInfo: NewClassInfo,
+  project: Project,
+  filePath: string,
+  refactoreClass
+) {
+  const sourceFile = project.addSourceFileAtPath(filePath);
+  sourceFile.forEachDescendant((node) => {
+    if (node instanceof VariableDeclaration) {
+      console.log(`Refactoring variable declaration: ${node.getText()}`);
+
+      if (node.getInitializerIfKind(SyntaxKind.NewExpression)) {
+        refactorNoArgInstance(newClassInfo, node, sourceFile);
+        refactorWithArgInstance(newClassInfo, node, sourceFile, refactoreClass);
+      }
+    }
+  });
+  project.saveSync();
+}
+
+function refactorNoArgInstance(
+  newClassInfo: NewClassInfo,
+  node: VariableDeclaration,
+  sourceFile: SourceFile
+) {
+  const instanceName = getInstanceName(newClassInfo);
+  const initializer = node.getInitializerIfKind(SyntaxKind.NewExpression);
+  if (
+    initializer &&
+    initializer.getExpression().getText() === newClassInfo.className
+  ) {
+    node.setInitializer(`new ${newClassInfo.className}()`);
+    refactorVariableDeclaration(
+      newClassInfo,
+      node.getName(),
+      instanceName,
+      sourceFile
+    );
+  }
+}
+
+function refactorWithArgInstance(
+  newClassInfo: NewClassInfo,
+  node: VariableDeclaration,
+  sourceFile: SourceFile,
+  classToRefactor
+) {
+  const instanceName = getInstanceName(newClassInfo);
+  const initializer = node.getInitializerIfKind(SyntaxKind.NewExpression);
+  console.log("+++++++++++++++++++", initializer.getExpression().getText());
+  console.log("--------------", classToRefactor.getName());
+  if (
+    initializer &&
+    initializer.getExpression().getText() === classToRefactor.getName()
+  ) {
+    const argumentStr = initializer
+      .getArguments()
+      .map((arg) => arg.getText())
+      .join(", ");
+    node.setInitializer(
+      `new ${classToRefactor.getName()}(new ${
+        newClassInfo.className
+      }(${argumentStr}))`
+    );
+    refactorVariableDeclaration(
+      newClassInfo,
+      node.getName(),
+      classToRefactor.getName(),
+      sourceFile
+    );
+  }
+}
+
+function refactorVariableDeclaration(
+  newClassInfo: NewClassInfo,
+  variableName: string,
+  instanceName: string,
+  sourceFile: SourceFile
+) {
+  console.log("-----------------------");
+
+  sourceFile.forEachDescendant((descendantNode) => {
+    if (descendantNode instanceof PropertyAccessExpression) {
+      console.log("**************************");
+
+      const accessedExpression = descendantNode.getExpression();
+      if (
+        accessedExpression.getText() === variableName &&
+        parameterExists(descendantNode.getName(), newClassInfo.parameters)
+      ) {
+        accessedExpression.replaceWithText(`${variableName}.${instanceName}`);
+        descendantNode.replaceWithText(
+          `${instanceName}.get${toCamelCase(descendantNode.getName())}()`
+        );
+      }
+    }
+  });
 }

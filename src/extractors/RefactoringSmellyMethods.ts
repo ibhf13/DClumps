@@ -107,6 +107,8 @@ function refactorSelectedMethod(
   updateMethodBody(newClassInfo, method, sharedParameters);
 
   refactorMethodCallsUsingThis(newClassInfo, refactoredMethod, allMethods);
+  refactorMethodInOtherFile(newClassInfo, refactoredMethod, sourceFile);
+
   const globalCalls: GlobalCalls[] =
     refactoredMethod.callsInfo.callsList.callsGlob;
   globalCalls.forEach((call) => {
