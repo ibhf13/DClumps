@@ -1,5 +1,4 @@
 bugs:
-1. if the class has constructor delete the common fields from constructor body and arguments
 3. argument withnorArgs shouldnt exist "better check"
 
 

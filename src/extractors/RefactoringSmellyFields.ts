@@ -2,6 +2,7 @@ import {
   BinaryExpression,
   Block,
   ClassDeclaration,
+  ExpressionStatement,
   Identifier,
   MethodDeclaration,
   Project,
@@ -144,13 +145,17 @@ function updateFieldsInClass(
     }
     return "undefined";
   });
-
+  const instanceName = getInstanceName(newClassInfo);
+  refactorConstructor(
+    newClassInfo,
+    classToRefactor,
+    instanceName,
+    sharedParameters
+  );
   sharedParameters.forEach((param) => {
     const property = classToRefactor.getProperty(param);
     property?.remove();
   });
-
-  const instanceName = getInstanceName(newClassInfo);
 
   const instanceParamsStr = instanceParams.join(", ");
 
@@ -159,7 +164,55 @@ function updateFieldsInClass(
     type: newClassInfo.className,
     initializer: `new ${newClassInfo.className}(${instanceParamsStr})`,
   });
+
   return sharedParameters;
+}
+
+function refactorConstructor(
+  newClassInfo: NewClassInfo,
+  classToRefactor: ClassDeclaration,
+  instanceName: string,
+  sharedParameters: string[]
+) {
+  const constructor = classToRefactor.getConstructors()[0];
+  if (!constructor) return;
+
+  // Replace the parameters of the constructor
+  constructor.getParameters().forEach((param) => {
+    if (sharedParameters.includes(param.getName())) {
+      param.remove();
+    }
+  });
+  constructor.insertParameter(0, {
+    name: instanceName,
+    type: newClassInfo.className,
+  });
+
+  // Replace the assignments in the constructor body
+  constructor
+    .getStatements()
+    .filter(
+      (statement) => statement.getKind() === SyntaxKind.ExpressionStatement
+    )
+    .forEach((statement) => {
+      const expression = (statement as ExpressionStatement).getExpression();
+      if (expression.getKind() === SyntaxKind.BinaryExpression) {
+        const binaryExpression = expression as BinaryExpression;
+        const left = binaryExpression.getLeft();
+        const right = binaryExpression.getRight();
+        if (
+          left instanceof PropertyAccessExpression &&
+          left.getExpression().getKind() === SyntaxKind.ThisKeyword &&
+          sharedParameters.includes(left.getName())
+        ) {
+          binaryExpression.replaceWithText(
+            `this.${instanceName}.set${toCamelCase(
+              left.getName()
+            )}(${right.getText()})`
+          );
+        }
+      }
+    });
 }
 
 function refactorMethodBody(
