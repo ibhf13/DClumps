@@ -2,15 +2,19 @@ import {
   BinaryExpression,
   Block,
   ClassDeclaration,
+  Expression,
   ExpressionStatement,
   Identifier,
   MethodDeclaration,
+  NewExpression,
   Project,
+  Node,
   PropertyAccessExpression,
   SourceFile,
   SyntaxKind,
   VariableDeclaration,
   ts,
+  CallExpression,
 } from "ts-morph";
 import * as path from "path";
 import {
@@ -97,9 +101,15 @@ function refactorSelectedClassFields(
   const instanceName = getInstanceName(newClassInfo);
 
   const sharedParameters = updateFieldsInClass(newClassInfo, classToRefactor);
+
   classToRefactor.getMethods().forEach((method) => {
-    refactorMethodBody(method, newClassInfo, classToRefactor, instanceName);
-    updateWithGetter(classToRefactor, sharedParameters, instanceName);
+    refactorMethodBody(
+      method,
+      newClassInfo,
+      classToRefactor,
+      sharedParameters,
+      instanceName
+    );
   });
 
   project.saveSync();
@@ -219,6 +229,7 @@ function refactorMethodBody(
   method: MethodDeclaration,
   newClassInfo: NewClassInfo,
   classToRefactor: ClassDeclaration,
+  sharedParameters: string[],
   instance: string
 ) {
   const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
@@ -253,6 +264,7 @@ function refactorMethodBody(
           }
         });
       }
+      updateWithGetter(classToRefactor, sharedParameters, instance);
     });
 }
 

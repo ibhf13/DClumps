@@ -10,10 +10,26 @@ class Fields2 {
     this.fieldsY = 50;
     this.fieldsString = this.fieldsY.toString();
     let fields3Instance = new Fields3();
+    // non binary statements
     if (fields3Instance.fieldsY === fields3Instance.fieldsY + 9) {
+      // non binary statements
+      console.log(fields3Instance.fieldsY);
+      fields3Instance.fieldBoolean1;
     }
+
+    //geschachtelete statements
+    // binary statement
+    fields3Instance.fieldBoolean1 =
+      // binary statement             non binary statements
+      (fields3Instance.fieldsY = 19 + fields3Instance.fieldsY) ===
+      // non binary statements
+      fields3Instance.fieldsY;
+
+    // binary statement for not relevant obj
     let testObj = (fields3Instance.fieldsString =
+      // non binary statements (Call expression)
       fields3Instance.fieldsY.toString() + "hi");
+
     // let obj = new Fields22(new FieldsStringFieldsY("name", undefined), 10);
     // obj.fieldsStringFieldsYInstance.getFieldsY;
     let obj2 = new FieldsWithConstructor(true, 2, "waaaw", false);
@@ -64,7 +80,7 @@ class Field3Test {
     let temp = this.fieldsY + 20;
     this.fieldsY = 10 * this.fieldsY;
     if (this.fieldsY === (this.fieldsY = this.fieldsY + 1) + 8)
-      this.fieldsString = "new string";
+      this.fieldsString = "new string" + this.fieldsY.toString();
     console.log("fieldsString", this.fieldsString);
     //
     //fall new instance in method block

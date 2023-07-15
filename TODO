@@ -1,5 +1,27 @@
 bugs:
+1. assignment in the constructor should be setter
 3. argument withnorArgs shouldnt exist "better check"
+
+
+file path of the call , project 
+ refactored class
+
+3. if the name of the refactored class was instanced then 
+update argument 
+update usage
+
+update argument 
+1. instance args 
+2. newClassInfo for updating common argument 
+      let instance = new className(arg1,arg2,arg3,arg4) 
+      =>
+      let instance = new className(new newClassInfo(arg1,arg2,arg3),arg4) 
+
+update usage
+1. store the new instance name
+2. if it used use processExpression or updateWithGetter
+
+
 
 
 
@@ -11,7 +33,6 @@ where can the field call happened in other files?
 
 
 1. make more test
-2. saving calls list in Detection like methods
 3. handle FieldClumps calls
 
 4. Refactoring up to user (the method choice)
