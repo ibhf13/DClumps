@@ -15,6 +15,7 @@ import {
   VariableDeclaration,
   ts,
   CallExpression,
+  ConstructorDeclaration,
 } from "ts-morph";
 import * as path from "path";
 import {
@@ -178,27 +179,11 @@ function updateFieldsInClass(
   return sharedParameters;
 }
 
-function refactorConstructor(
-  newClassInfo: NewClassInfo,
-  classToRefactor: ClassDeclaration,
-  instanceName: string,
-  sharedParameters: string[]
+function replaceConstructorAssignments(
+  constructor: ConstructorDeclaration,
+  sharedParameters: string[],
+  instanceName: string
 ) {
-  const constructor = classToRefactor.getConstructors()[0];
-  if (!constructor) return;
-
-  // Replace the parameters of the constructor
-  constructor.getParameters().forEach((param) => {
-    if (sharedParameters.includes(param.getName())) {
-      param.remove();
-    }
-  });
-  constructor.insertParameter(0, {
-    name: instanceName,
-    type: newClassInfo.className,
-  });
-
-  // Replace the assignments in the constructor body
   constructor
     .getStatements()
     .filter(
@@ -223,6 +208,38 @@ function refactorConstructor(
         }
       }
     });
+}
+
+function replaceConstructorParameters(
+  constructor: ConstructorDeclaration,
+  newClassInfo: NewClassInfo,
+  sharedParameters: string[]
+) {
+  constructor.getParameters().forEach((param) => {
+    if (sharedParameters.includes(param.getName())) {
+      param.remove();
+    }
+  });
+  constructor.insertParameter(0, {
+    name: getInstanceName(newClassInfo),
+    type: newClassInfo.className,
+  });
+}
+
+function refactorConstructor(
+  newClassInfo: NewClassInfo,
+  classToRefactor: ClassDeclaration,
+  instanceName: string,
+  sharedParameters: string[]
+) {
+  const constructor = classToRefactor.getConstructors()[0];
+  if (!constructor) return;
+
+  // Replace the parameters of the constructor
+  replaceConstructorParameters(constructor, newClassInfo, sharedParameters);
+
+  // Replace the assignments in the constructor body
+  replaceConstructorAssignments(constructor, sharedParameters, instanceName);
 }
 
 function refactorMethodBody(
