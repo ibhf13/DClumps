@@ -134,7 +134,7 @@ function parameterExists(
   return newClassParams.some((param) => param.name === paramName);
 }
 
-function updateFieldsInClass(
+function getSharedParameters(
   newClassInfo: NewClassInfo,
   classToRefactor: ClassDeclaration
 ): string[] {
@@ -149,24 +149,35 @@ function updateFieldsInClass(
       ])
   );
 
-  const instanceParams = newClassInfo.parameters.map((param) => {
+  newClassInfo.parameters.forEach((param) => {
     if (currentClassParameters.has(param.name)) {
       sharedParameters.push(param.name);
-      return currentClassParameters.get(param.name);
     }
-    return "undefined";
   });
-  const instanceName = getInstanceName(newClassInfo);
-  refactorConstructor(
-    newClassInfo,
-    classToRefactor,
-    instanceName,
-    sharedParameters
-  );
+  return sharedParameters;
+}
+
+function refactorClassProperties(
+  classToRefactor: ClassDeclaration,
+  sharedParameters: string[]
+) {
   sharedParameters.forEach((param) => {
     const property = classToRefactor.getProperty(param);
     property?.remove();
   });
+}
+
+function createClassInstance(
+  newClassInfo: NewClassInfo,
+  classToRefactor: ClassDeclaration,
+  sharedParameters: string[]
+) {
+  const instanceName = getInstanceName(newClassInfo);
+  const instanceParams = sharedParameters.map(
+    (param) =>
+      newClassInfo.parameters.find((p) => p.name === param)?.value ||
+      "undefined"
+  );
 
   const instanceParamsStr = instanceParams.join(", ");
 
@@ -175,6 +186,27 @@ function updateFieldsInClass(
     type: newClassInfo.className,
     initializer: `new ${newClassInfo.className}(${instanceParamsStr})`,
   });
+
+  return instanceName;
+}
+
+function updateFieldsInClass(
+  newClassInfo: NewClassInfo,
+  classToRefactor: ClassDeclaration
+): string[] {
+  const sharedParameters = getSharedParameters(newClassInfo, classToRefactor);
+  refactorClassProperties(classToRefactor, sharedParameters);
+  const instanceName = createClassInstance(
+    newClassInfo,
+    classToRefactor,
+    sharedParameters
+  );
+  refactorConstructor(
+    newClassInfo,
+    classToRefactor,
+    instanceName,
+    sharedParameters
+  );
 
   return sharedParameters;
 }
@@ -250,28 +282,18 @@ function refactorMethodBody(
   instance: string
 ) {
   const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
-
-  const classPropertyNames = classToRefactor
-    .getProperties()
-    .map((prop) => prop.getName());
-
+  let replacements = [];
   method
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
     .forEach((expressionStatement) => {
       const expression = expressionStatement.getExpression();
 
       if (expression instanceof BinaryExpression) {
+        const expressions = method.getDescendantsOfKind(
+          SyntaxKind.BinaryExpression
+        );
         expressions.reverse().forEach((binaryExpression) => {
-          const left = binaryExpression.getLeft();
-          const right = binaryExpression.getRight();
-
-          // Only refactor expressions that are related to the class that is being refactored
-          if (
-            (left instanceof PropertyAccessExpression &&
-              classPropertyNames.includes(left.getName())) ||
-            (right instanceof PropertyAccessExpression &&
-              classPropertyNames.includes(right.getName()))
-          ) {
+          if (binaryExpression.getText().includes("this")) {
             const newExpression = processExpression(
               binaryExpression,
               instance,
@@ -280,17 +302,18 @@ function refactorMethodBody(
             binaryExpression.replaceWithText(newExpression);
           }
         });
+      } else {
+        updateGetterCalls(expression, sharedParameters, instance);
       }
-      updateWithGetter(classToRefactor, sharedParameters, instance);
     });
 }
 
-function updateWithGetter(
-  classToRefactor: ClassDeclaration,
+function updateGetterCalls(
+  expression: Expression,
   sharedParameters: string[],
   instanceName: string
 ) {
-  classToRefactor
+  expression
     .getDescendantsOfKind(SyntaxKind.PropertyAccessExpression)
     .filter((propertyAccess) => {
       return (
@@ -310,52 +333,68 @@ function processExpression(
   instance: string,
   newClassInfo: NewClassInfo
 ): string {
-  let left = expression.getLeft();
-  let right = expression.getRight();
+  const left = expression.getLeft();
+  const right = expression.getRight();
   let leftText = left.getText();
   let rightText = right.getText();
 
-  // Handle nested expressions recursively
   if (right instanceof BinaryExpression) {
     rightText = processExpression(right, instance, newClassInfo);
   }
+
+  //Check if the left and right expressions contain 'this' or another instance name
 
   const assignment =
     expression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
 
   if (assignment) {
     if (
+      (left instanceof PropertyAccessExpression &&
+        parameterExists(left.getName(), newClassInfo.parameters) &&
+        left.getExpression().getKind() === SyntaxKind.Identifier) ||
+      (right instanceof PropertyAccessExpression &&
+        parameterExists(right.getName(), newClassInfo.parameters) &&
+        right.getExpression().getKind() === SyntaxKind.Identifier)
+    ) {
+      return `${leftText} = ${rightText}`;
+    }
+    if (
       left instanceof PropertyAccessExpression &&
       parameterExists(left.getName(), newClassInfo.parameters) &&
-      left.getExpression().getKind() === SyntaxKind.ThisKeyword
+      left.getExpression().getKind() !== SyntaxKind.Identifier
     ) {
       leftText = `this.${instance}.set${toCamelCase(left.getName())}`;
     }
     if (
       right instanceof PropertyAccessExpression &&
       parameterExists(right.getName(), newClassInfo.parameters) &&
-      right.getExpression().getKind() === SyntaxKind.ThisKeyword
+      right.getExpression().getKind() !== SyntaxKind.Identifier
     ) {
       rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
     }
-    return `${leftText}(${rightText})`;
+    let result = `${leftText}(${rightText})`;
+
+    return result;
   } else {
     if (
       left instanceof PropertyAccessExpression &&
       parameterExists(left.getName(), newClassInfo.parameters) &&
-      left.getExpression().getKind() === SyntaxKind.ThisKeyword
+      left.getExpression().getKind() !== SyntaxKind.Identifier
     ) {
       leftText = `this.${instance}.get${toCamelCase(left.getName())}()`;
     }
     if (
       right instanceof PropertyAccessExpression &&
       parameterExists(right.getName(), newClassInfo.parameters) &&
-      right.getExpression().getKind() === SyntaxKind.ThisKeyword
+      right.getExpression().getKind() !== SyntaxKind.Identifier
     ) {
       rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
     }
-    return `${leftText} ${expression
+
+    const result = `${leftText} ${expression
       .getOperatorToken()
       .getText()} ${rightText}`;
+
+    return result;
   }
 }

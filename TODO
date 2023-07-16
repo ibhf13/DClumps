@@ -1,8 +1,6 @@
 bugs:
-1. assignment in the constructor should be setter
-3. argument withnorArgs shouldnt exist "better check"
-
-
+1. handle object in the fields that relay on other fields 
+2. validate the fields name (if other instance have the same name we need to check the right instance)
 file path of the call , project 
  refactored class
 
