@@ -111,6 +111,12 @@ function refactorSelectedClassFields(
       sharedParameters,
       instanceName
     );
+    findInstancesOfRefactoredClass(
+      project,
+      refactoredField.classInfo.filepath,
+      classToRefactor,
+      newClassInfo
+    );
   });
 
   project.saveSync();
@@ -394,5 +400,226 @@ function processExpression(
       .getText()} ${rightText}`;
 
     return result;
+  }
+}
+
+function findInstancesOfRefactoredClass(
+  project: Project,
+  filepath: string,
+  refactoredClass: ClassDeclaration,
+  newClassInfo: NewClassInfo
+) {
+  console.log(`Finding instances of refactored class in file: ${filepath}`);
+
+  const sourceFile = project.addSourceFileAtPath(filepath);
+
+  const newExpressions = sourceFile.getDescendantsOfKind(
+    SyntaxKind.NewExpression
+  );
+
+  newExpressions.forEach((newExpression) => {
+    let foundInClassName = newExpression
+      .getFirstAncestorByKind(SyntaxKind.ClassDeclaration)
+      .getName();
+
+    if (newExpression.getExpression().getText() === refactoredClass.getName()) {
+      console.log(
+        `Found instance of refactoredClass in class: ${foundInClassName} has argument ${newExpression.getText()}`
+      );
+      const args = newExpression.getArguments();
+
+      if (args.length > 0) {
+        // updateInstanceArguments(newExpression, newClassInfo, args, sourceFile);
+      } else {
+        updateInstanceUsage(newExpression, newClassInfo, sourceFile);
+      }
+    }
+  });
+}
+
+function updateInstanceUsage(
+  newExpression: NewExpression,
+  newClassInfo: NewClassInfo,
+  sourceFile: SourceFile
+) {
+  const instanceName = newExpression
+    .getParentIfKind(SyntaxKind.VariableDeclaration)
+    ?.getName();
+  if (!instanceName) {
+    console.error(
+      `Failed to get instance name for: ${newExpression.getText()}`
+    );
+    return;
+  }
+  console.log(`Instance name: ${instanceName}`);
+
+  const methodDeclaration = newExpression.getFirstAncestorByKind(
+    SyntaxKind.MethodDeclaration
+  );
+  if (!methodDeclaration) {
+    console.error(
+      `Failed to get method declaration for: ${newExpression.getText()}`
+    );
+    return;
+  }
+  const refactoredInstance = getInstanceName(newClassInfo);
+  console.log(`Refactored Instance name: ${refactoredInstance}`);
+
+  methodDeclaration
+    .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+    .forEach((expressionStatement) => {
+      const expression = expressionStatement.getExpression();
+      if (expression instanceof BinaryExpression) {
+        const expressions = methodDeclaration.getDescendantsOfKind(
+          SyntaxKind.BinaryExpression
+        );
+        expressions.reverse().forEach((binaryExpression) => {
+          if (binaryExpression.getText().includes(instanceName)) {
+            const newExpression = processExpressionForCalls(
+              binaryExpression,
+              refactoredInstance,
+              newClassInfo,
+              instanceName
+            );
+            binaryExpression.replaceWithText(newExpression);
+          }
+        });
+      } else {
+        updateWithGetterUsingInstance(
+          expressionStatement,
+          refactoredInstance,
+          newClassInfo,
+          instanceName
+        );
+      }
+    });
+}
+
+function processExpressionForCalls(
+  binaryExpression: BinaryExpression,
+  refactoredInstance: string,
+  newClassInfo: NewClassInfo,
+  instanceName: string
+): string {
+  const left = binaryExpression.getLeft();
+  const right = binaryExpression.getRight();
+  let leftText = left.getText();
+  let rightText = right.getText();
+
+  if (right instanceof BinaryExpression) {
+    rightText = processExpressionForCalls(
+      right,
+      refactoredInstance,
+      newClassInfo,
+      instanceName
+    );
+  }
+
+  const assignment =
+    binaryExpression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
+
+  if (assignment) {
+    if (
+      left instanceof PropertyAccessExpression &&
+      left.getText().includes(instanceName)
+    ) {
+      const propertyName = left.getName();
+      leftText = `${instanceName}.${refactoredInstance}.set${toCamelCase(
+        propertyName
+      )}`;
+    }
+    if (
+      right instanceof PropertyAccessExpression &&
+      right.getText().includes(instanceName)
+    ) {
+      const propertyName = right.getName();
+      rightText = `${instanceName}.${refactoredInstance}.get${toCamelCase(
+        propertyName
+      )}()`;
+    }
+    let result = `${leftText}(${rightText})`;
+
+    return result;
+  } else {
+    if (
+      left instanceof PropertyAccessExpression &&
+      left.getText().includes(instanceName)
+    ) {
+      const propertyName = left.getName();
+      leftText = `${instanceName}.${refactoredInstance}.get${toCamelCase(
+        propertyName
+      )}()`;
+    }
+    if (
+      right instanceof PropertyAccessExpression &&
+      right.getText().includes(instanceName)
+    ) {
+      const propertyName = right.getName();
+      rightText = `${instanceName}.${refactoredInstance}.get${toCamelCase(
+        propertyName
+      )}()`;
+    }
+
+    const result = `${leftText} ${binaryExpression
+      .getOperatorToken()
+      .getText()} ${rightText}`;
+
+    return result;
+  }
+}
+
+function updateWithGetterUsingInstance(
+  expressionStatement: ExpressionStatement,
+  refactoredInstance: string,
+  newClassInfo: NewClassInfo,
+  instanceName: string
+) {
+  const expression = expressionStatement.getExpression();
+
+  if (expression instanceof CallExpression) {
+    const call = expression as CallExpression;
+    const identifier = call.getExpression();
+
+    if (
+      call.getArguments().some((arg) => arg.getText().includes(instanceName))
+    ) {
+      const updatedArguments = call.getArguments().map((arg) => {
+        if (arg.getText().includes(instanceName)) {
+          const matches = arg
+            .getText()
+            .match(new RegExp(`${instanceName}\\.([a-zA-Z0-9_]+)`));
+          if (
+            matches &&
+            matches[1] &&
+            parameterExists(matches[1], newClassInfo.parameters)
+          ) {
+            return `${instanceName}.${refactoredInstance}.get${toCamelCase(
+              matches[1]
+            )}()`;
+          }
+        }
+        return arg.getText();
+      });
+      call.replaceWithText(
+        `${identifier.getText()}(${updatedArguments.join(", ")})`
+      );
+    } else if (identifier instanceof PropertyAccessExpression) {
+      const propName = identifier.getName();
+      if (identifier.getText().includes(instanceName)) {
+        const updatedExpression = `${instanceName}.${refactoredInstance}.${propName}()`;
+        call.replaceWithText(updatedExpression);
+      }
+    }
+  } else if (expression instanceof PropertyAccessExpression) {
+    const propName = expression.getName();
+    if (
+      parameterExists(propName, newClassInfo.parameters) &&
+      expression.getText().includes(instanceName)
+    ) {
+      const updatedExpression = `${instanceName}.${refactoredInstance}.get${toCamelCase(
+        propName
+      )}()`;
+      expression.replaceWithText(updatedExpression);
+    }
   }
 }
