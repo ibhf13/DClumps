@@ -281,8 +281,6 @@ function refactorMethodBody(
   sharedParameters: string[],
   instance: string
 ) {
-  const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
-  let replacements = [];
   method
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
     .forEach((expressionStatement) => {
