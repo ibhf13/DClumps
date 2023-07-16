@@ -1,7 +1,9 @@
 bugs:
 1. handle object list in the fields that relay on other fields 
 2. validate the fields name (if other instance have the same name we need to check the right instance)
-
+3. file bugs
+4. update calls list without errors
+5. check Smelly method refactoring getType.LiteralValue doesnt  work
 
 file path of the call , project 
  refactored class

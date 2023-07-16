@@ -1,0 +1,55 @@
+export class FieldsYFieldsStringFieldBoolean1Obj3 {
+    private fieldsY: number = undefined;
+    private fieldsString: string = undefined;
+    private fieldBoolean1: Boolean = true;
+    private obj3: import("C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/FieldTests/simple/SimpleFields2").FieldsWithConstructor = new FieldsWithConstructor(
+            true,
+            2,
+            "waaaw",
+            false
+          );
+
+    constructor(fieldsY: number, fieldsString: string, fieldBoolean1: Boolean = true, obj3: import("C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/FieldTests/simple/SimpleFields2").FieldsWithConstructor = new FieldsWithConstructor(
+        true,
+        2,
+        "waaaw",
+        false
+      )) {
+        this.fieldsY = fieldsY;
+        this.fieldsString = fieldsString;
+        this.fieldBoolean1 = fieldBoolean1;
+        this.obj3 = obj3;
+    }
+
+    getFieldsY(): number {
+        return this.fieldsY;
+    }
+
+    setFieldsY(fieldsY: number) {
+        this.fieldsY = fieldsY;
+    }
+
+    getFieldsString(): string {
+        return this.fieldsString;
+    }
+
+    setFieldsString(fieldsString: string) {
+        this.fieldsString = fieldsString;
+    }
+
+    getFieldBoolean1(): Boolean {
+        return this.fieldBoolean1;
+    }
+
+    setFieldBoolean1(fieldBoolean1: Boolean) {
+        this.fieldBoolean1 = fieldBoolean1;
+    }
+
+    getObj3(): import("C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/FieldTests/simple/SimpleFields2").FieldsWithConstructor {
+        return this.obj3;
+    }
+
+    setObj3(obj3: import("C:/Users/ibrah/Desktop/Babel/DClumpsBabel/src/test/FieldTests/simple/SimpleFields2").FieldsWithConstructor) {
+        this.obj3 = obj3;
+    }
+}

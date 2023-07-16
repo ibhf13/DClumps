@@ -20,6 +20,7 @@ import {
 import * as path from "path";
 import {
   DataClumpsList,
+  GlobalCalls,
   NewClassInfo,
   ParameterInfo,
   SmellyFields,
@@ -111,14 +112,26 @@ function refactorSelectedClassFields(
       sharedParameters,
       instanceName
     );
-    findInstancesOfRefactoredClass(
-      project,
-      refactoredField.classInfo.filepath,
-      classToRefactor,
-      newClassInfo
-    );
   });
+  findInstancesOfRefactoredClass(
+    project,
+    refactoredField.classInfo.filepath,
+    classToRefactor,
+    newClassInfo
+  );
 
+  // const globalCalls: GlobalCalls[] =
+  //   refactoredField.callsInfo.callsList.callsGlob;
+  // globalCalls.forEach((call) => {
+  //   project.saveSync();
+
+  //   findInstancesOfRefactoredClass(
+  //     project,
+  //     call.classInfo.filepath,
+  //     classToRefactor,
+  //     newClassInfo
+  //   );
+  // });
   project.saveSync();
 }
 
@@ -409,7 +422,7 @@ function findInstancesOfRefactoredClass(
   refactoredClass: ClassDeclaration,
   newClassInfo: NewClassInfo
 ) {
-  console.log(`Finding instances of refactored class in file: ${filepath}`);
+  //console.log(`Finding instances of refactored class in file: ${filepath}`);
 
   const sourceFile = project.addSourceFileAtPath(filepath);
 
@@ -418,29 +431,67 @@ function findInstancesOfRefactoredClass(
   );
 
   newExpressions.forEach((newExpression) => {
-    let foundInClassName = newExpression
-      .getFirstAncestorByKind(SyntaxKind.ClassDeclaration)
-      .getName();
-
     if (newExpression.getExpression().getText() === refactoredClass.getName()) {
-      console.log(
-        `Found instance of refactoredClass in class: ${foundInClassName} has argument ${newExpression.getText()}`
-      );
       const args = newExpression.getArguments();
 
       if (args.length > 0) {
-        // updateInstanceArguments(newExpression, newClassInfo, args, sourceFile);
+        updateInstanceArguments(newExpression, newClassInfo, args);
       } else {
-        updateInstanceUsage(newExpression, newClassInfo, sourceFile);
+        updateInstanceUsage(newExpression, newClassInfo);
       }
     }
   });
+  project.saveSync();
+}
+
+function updateInstanceArguments(
+  newExpression: NewExpression,
+  newClassInfo: NewClassInfo,
+  args: Node[]
+) {
+  const newClassName = newClassInfo.className;
+  const newClassParameters = newClassInfo.parameters;
+  const instanceToRefactorClassName = newExpression.getExpression().getText();
+
+  let newClassArguments = [];
+  let otherArguments = [];
+
+  let newClassParamTypes = newClassParameters.map((param) => param.type);
+
+  let argumentsList = [...args]; // clone the args array to avoid side-effects
+
+  for (let i = 0; i < newClassParamTypes.length; i++) {
+    let foundIndex = argumentsList.findIndex(
+      (arg) =>
+        arg.getType().getApparentType().getText().charAt(0).toLowerCase() +
+          arg.getType().getApparentType().getText().slice(1) ===
+        newClassParamTypes[i]
+    );
+    if (foundIndex !== -1) {
+      newClassArguments.push(argumentsList[foundIndex].getText());
+      argumentsList.splice(foundIndex, 1); // Remove common argument to avoid duplication
+    } else {
+      newClassArguments.push("undefined");
+    }
+  }
+
+  // Remaining arguments are the otherArguments
+  otherArguments = argumentsList.map((arg) => arg.getText());
+
+  // Replace the instance creation with the new arguments
+  const newInstanceCreation = `new ${newClassName}( ${newClassArguments.join(
+    ", "
+  )})`;
+  const newArgumentsText = [newInstanceCreation, ...otherArguments].join(", ");
+  newExpression.replaceWithText(
+    `new ${instanceToRefactorClassName}(${newArgumentsText})`
+  );
+  updateInstanceUsage(newExpression, newClassInfo);
 }
 
 function updateInstanceUsage(
   newExpression: NewExpression,
-  newClassInfo: NewClassInfo,
-  sourceFile: SourceFile
+  newClassInfo: NewClassInfo
 ) {
   const instanceName = newExpression
     .getParentIfKind(SyntaxKind.VariableDeclaration)
@@ -463,7 +514,6 @@ function updateInstanceUsage(
     return;
   }
   const refactoredInstance = getInstanceName(newClassInfo);
-  console.log(`Refactored Instance name: ${refactoredInstance}`);
 
   methodDeclaration
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)

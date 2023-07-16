@@ -50,6 +50,8 @@ function createNewClass(smellyFieldGroup, outputPath: string) {
     leastParameterFieldGroup.fieldInfo,
     outputPath
   );
+  project.saveSync();
+
   refactorSmellyFields(
     newClassInfo,
     leastParameterFieldGroup,
