@@ -91,6 +91,8 @@ function refactorSelectedClassFields(
   refactoredField: SmellyFields,
   project: Project
 ) {
+  console.log("\n\nStart Refactoring in ", refactoredField.classInfo.filepath);
+
   const sourceFile = project.addSourceFileAtPath(
     refactoredField.classInfo.filepath
   );
@@ -100,11 +102,18 @@ function refactorSelectedClassFields(
   const classToRefactor = sourceFile.getClass(
     refactoredField.classInfo.className
   );
+  console.log("Starting Class : ", refactoredField.classInfo.className);
+
   const instanceName = getInstanceName(newClassInfo);
+  console.log("....\nStart with updateFieldsInClass ");
 
   const sharedParameters = updateFieldsInClass(newClassInfo, classToRefactor);
 
   classToRefactor.getMethods().forEach((method) => {
+    console.log(
+      "then : refactorMethodBody for each method : ",
+      method.getName()
+    );
     refactorMethodBody(
       method,
       newClassInfo,
@@ -113,7 +122,17 @@ function refactorSelectedClassFields(
       instanceName
     );
   });
+
   if (refactoredField.callsInfo.callsList.callsInSame > 0) {
+    console.log(
+      "--------------------\n",
+      "refactoredField Calls in the same file ",
+      refactoredField.classInfo.filepath,
+      "\nthe name of the class :",
+      classToRefactor.getName(),
+      "\n--------------------"
+    );
+
     findInstancesOfRefactoredClass(
       project,
       refactoredField.classInfo.filepath,
@@ -122,18 +141,25 @@ function refactorSelectedClassFields(
     );
   }
 
-  // const globalCalls: GlobalCalls[] =
-  //   refactoredField.callsInfo.callsList.callsGlob;
-  // globalCalls.forEach((call) => {
-  //   project.saveSync();
-
-  //   findInstancesOfRefactoredClass(
-  //     project,
-  //     call.classInfo.filepath,
-  //     classToRefactor,
-  //     newClassInfo
-  //   );
-  // });
+  const globalCalls: GlobalCalls[] =
+    refactoredField.callsInfo.callsList.callsGlob;
+  globalCalls.forEach((call) => {
+    project.saveSync();
+    console.log(
+      "--------------------\n",
+      "refactoredField Calls in the other file ",
+      call.classInfo.filepath,
+      "\nthe name of the class :",
+      classToRefactor.getName(),
+      "\n--------------------"
+    );
+    findInstancesOfRefactoredClass(
+      project,
+      call.classInfo.filepath,
+      classToRefactor,
+      newClassInfo
+    );
+  });
   project.saveSync();
 }
 
@@ -504,7 +530,7 @@ function updateInstanceUsage(
     );
     return;
   }
-  console.log(`Instance name: ${instanceName}`);
+  console.log(`Instance name: ${instanceName}  `);
 
   const methodDeclaration = newExpression.getFirstAncestorByKind(
     SyntaxKind.MethodDeclaration
