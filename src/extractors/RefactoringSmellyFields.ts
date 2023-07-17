@@ -113,12 +113,14 @@ function refactorSelectedClassFields(
       instanceName
     );
   });
-  findInstancesOfRefactoredClass(
-    project,
-    refactoredField.classInfo.filepath,
-    classToRefactor,
-    newClassInfo
-  );
+  if (refactoredField.callsInfo.callsList.callsInSame > 0) {
+    findInstancesOfRefactoredClass(
+      project,
+      refactoredField.classInfo.filepath,
+      classToRefactor,
+      newClassInfo
+    );
+  }
 
   // const globalCalls: GlobalCalls[] =
   //   refactoredField.callsInfo.callsList.callsGlob;
