@@ -149,7 +149,13 @@ function refactorMethodCallsUsingThis(
           for (let i = 0; i < newClassParamTypes.length; i++) {
             let foundIndex = argumentsList.findIndex(
               (arg) =>
-                getType(arg.getType().getLiteralValue()) ===
+                arg
+                  .getType()
+                  .getApparentType()
+                  .getText()
+                  .charAt(0)
+                  .toLowerCase() +
+                  arg.getType().getApparentType().getText().slice(1) ===
                 newClassParamTypes[i]
             );
             if (foundIndex !== -1) {
@@ -206,7 +212,14 @@ function refactorMethodInOtherFile(
         for (let i = 0; i < newClassParamTypes.length; i++) {
           let foundIndex = argumentsList.findIndex(
             (arg) =>
-              typeof arg.getType().getLiteralValue() === newClassParamTypes[i]
+              arg
+                .getType()
+                .getApparentType()
+                .getText()
+                .charAt(0)
+                .toLowerCase() +
+                arg.getType().getApparentType().getText().slice(1) ===
+              newClassParamTypes[i]
           );
           if (foundIndex !== -1) {
             newClassArguments.push(argumentsList[foundIndex].getText());
@@ -232,10 +245,6 @@ function refactorMethodInOtherFile(
       }
     }
   });
-}
-
-function getType(value: any): string {
-  return typeof value;
 }
 
 function updateMethodParameters(newClassInfo: NewClassInfo, method) {
