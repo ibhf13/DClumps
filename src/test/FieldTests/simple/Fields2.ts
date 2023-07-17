@@ -1,6 +1,6 @@
 import { Fields3 } from "./Fields3";
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
-
+// data clumps of 3
 class Fields2 {
   fieldsString = "name";
   fieldsY: number;

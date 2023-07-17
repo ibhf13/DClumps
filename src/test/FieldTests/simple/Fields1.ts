@@ -1,20 +1,20 @@
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
-
+//data clumps of 4
 class Field1 {
   fieldsY: number;
   fieldsString: string;
   fieldBoolean1: Boolean = true;
   //
   //fall instance in class variable
-  obj3: FieldsWithConstructor = new FieldsWithConstructor(
-    true,
-    2,
-    "waaaw",
-    false
-  );
+  obj3: FieldsWithConstructor;
   //
   //fall instance in constructor
-  constructor(fieldsY, fieldsString, fieldBoolean1, obj3) {
+  constructor(
+    fieldsY: number,
+    fieldsString: string,
+    fieldBoolean1: boolean,
+    obj3: FieldsWithConstructor
+  ) {
     //
     //fall usage in constructor body
     this.fieldsY = obj3.fieldsY;

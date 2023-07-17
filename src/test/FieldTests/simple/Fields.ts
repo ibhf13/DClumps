@@ -1,5 +1,5 @@
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
-
+// data clumps of 2
 class Field {
   fieldsY: number;
   fieldsString: string;
