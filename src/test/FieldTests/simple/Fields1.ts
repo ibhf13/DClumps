@@ -3,10 +3,10 @@ import { FieldsWithConstructor } from "./FieldsWithConstructor";
 class Field1 {
   fieldsY: number;
   fieldsString: string;
-  fieldBoolean1: Boolean = true;
+  fieldBoolean1: boolean = true;
   //
   //fall instance in class variable
-  obj3: FieldsWithConstructor;
+  // obj3: FieldsWithConstructor;
   //
   //fall instance in constructor
   constructor(
@@ -39,6 +39,6 @@ class Field1 {
     let obj4 = new FieldsWithConstructor(true, 2, "waaaw", false);
     //
     // fall usage all instances from method block, method parameter and class variable
-    obj4.fieldBoolean1 = obj5.fieldsString === this.obj3.fieldsY.toString();
+    obj4.fieldBoolean1 = obj5.fieldsString === "";
   }
 }

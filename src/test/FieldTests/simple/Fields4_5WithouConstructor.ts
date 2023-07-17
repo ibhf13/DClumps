@@ -1,8 +1,8 @@
 class Fields4 {
   fieldsString = "name";
-  fieldBoolean1: Boolean;
+  fieldBoolean1: boolean;
   fieldsY: number;
-  fieldBoolean2: Boolean;
+  fieldBoolean2: boolean;
 
   normalMethod(): void {
     this.fieldsY = 50;
@@ -11,10 +11,10 @@ class Fields4 {
   }
 }
 class Fields5 {
-  fieldBoolean1: Boolean;
+  fieldBoolean1: boolean;
   fieldsX = 10;
   fieldsY: number;
-  fieldBoolean2: Boolean;
+  fieldBoolean2: boolean;
   fieldsString: string;
 
   normalMethod(): void {
