@@ -1,4 +1,4 @@
-import { FieldsStringFieldsY } from "./SimpleFieldsNegativeNewClassCreated";
+import { FieldsStringFieldsY } from "./FieldsNegativeNewClassCreated";
 
 export class Fields22 {
   fieldsStringFieldsYInstance: FieldsStringFieldsY = new FieldsStringFieldsY(
