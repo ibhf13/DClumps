@@ -16,6 +16,9 @@ import {
   ts,
   CallExpression,
   ConstructorDeclaration,
+  TypeReferenceNode,
+  ParameterDeclaration,
+  PropertyDeclaration,
 } from "ts-morph";
 import * as path from "path";
 import {
@@ -25,6 +28,7 @@ import {
   ParameterInfo,
   SmellyFields,
 } from "../utils/Interfaces";
+import { callExpression } from "@babel/types";
 
 export function refactorSmellyFields(
   newClassInfo: NewClassInfo,
@@ -450,18 +454,15 @@ function findInstancesOfRefactoredClass(
   refactoredClass: ClassDeclaration,
   newClassInfo: NewClassInfo
 ) {
-  //console.log(`Finding instances of refactored class in file: ${filepath}`);
-
   const sourceFile = project.addSourceFileAtPath(filepath);
 
+  // Handling NewExpressions
   const newExpressions = sourceFile.getDescendantsOfKind(
     SyntaxKind.NewExpression
   );
-
   newExpressions.forEach((newExpression) => {
     if (newExpression.getExpression().getText() === refactoredClass.getName()) {
       const args = newExpression.getArguments();
-
       if (args.length > 0) {
         updateInstanceArguments(newExpression, newClassInfo, args);
       } else {
@@ -469,11 +470,135 @@ function findInstancesOfRefactoredClass(
       }
     }
   });
+  // Handling ParameterDeclarations
+  const parameterDeclarations = sourceFile.getDescendantsOfKind(
+    SyntaxKind.Parameter
+  );
+  parameterDeclarations.forEach((parameterDeclaration) => {
+    if (parameterDeclaration.getText().includes(refactoredClass.getName())) {
+      console.log("Checking Parameters :  ", parameterDeclaration.getText());
+      handleParameterDeclaration(parameterDeclaration, newClassInfo);
+    }
+  });
+
+  // Handling PropertyDeclarations
+  const propertyDeclarations = sourceFile.getDescendantsOfKind(
+    SyntaxKind.PropertyDeclaration
+  );
+  propertyDeclarations.forEach((propertyDeclaration) => {
+    if (propertyDeclaration.getText().includes(refactoredClass.getName())) {
+      updatePropertyDeclaration(propertyDeclaration, newClassInfo);
+    }
+  });
+
   project.saveSync();
 }
 
+function updatePropertyDeclaration(
+  propertyDeclaration: PropertyDeclaration,
+  newClassInfo: NewClassInfo
+) {
+  const fieldName = propertyDeclaration.getName();
+
+  const fieldDeclaration = propertyDeclaration.getFirstAncestorByKind(
+    SyntaxKind.ClassDeclaration
+  );
+  if (!fieldDeclaration) {
+    console.error(
+      `Failed to get method declaration for: ${propertyDeclaration.getText()}`
+    );
+    return;
+  }
+
+  const refactoredInstance = getInstanceName(newClassInfo);
+  fieldDeclaration.getMethods().forEach((method) => {
+    method
+      .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+      .forEach((expressionStatement) => {
+        const expression = expressionStatement.getExpression();
+
+        if (expression.getText().includes("=")) {
+          const expressions = fieldDeclaration.getDescendantsOfKind(
+            SyntaxKind.BinaryExpression
+          );
+
+          expressions.reverse().forEach((binaryExpression) => {
+            if (binaryExpression.getText().includes(fieldName)) {
+              const newExpression = processExpression(
+                binaryExpression,
+                refactoredInstance,
+                newClassInfo
+              );
+              binaryExpression.replaceWithText(newExpression);
+            }
+          });
+        } else {
+          if (expression instanceof PropertyAccessExpression) {
+            expression.replaceWithText(
+              `this.${fieldName}.${refactoredInstance}.get${toCamelCase(
+                expression.getName()
+              )}()`
+            );
+          }
+        }
+      });
+  });
+}
+
+function handleParameterDeclaration(
+  parameterDeclaration: ParameterDeclaration,
+  newClassInfo: NewClassInfo
+) {
+  const parameterName = parameterDeclaration.getName();
+  console.log("...........................");
+  console.log("parameterName :                             ", parameterName);
+  console.log("...........................");
+
+  const methodDeclaration = parameterDeclaration.getFirstAncestorByKind(
+    SyntaxKind.MethodDeclaration
+  );
+  if (!methodDeclaration) {
+    console.error(
+      `Failed to get method declaration for: ${parameterDeclaration.getText()}`
+    );
+    return;
+  }
+
+  const refactoredInstance = getInstanceName(newClassInfo);
+  methodDeclaration
+    .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
+    .forEach((expressionStatement) => {
+      const expression = expressionStatement.getExpression();
+
+      if (expression.getText().includes("=")) {
+        const expressions = methodDeclaration.getDescendantsOfKind(
+          SyntaxKind.BinaryExpression
+        );
+
+        expressions.reverse().forEach((binaryExpression) => {
+          if (binaryExpression.getText().includes(parameterName)) {
+            const newExpression = processExpressionForCalls(
+              binaryExpression,
+              refactoredInstance,
+              newClassInfo,
+              parameterName
+            );
+            binaryExpression.replaceWithText(newExpression);
+          }
+        });
+      } else {
+        updateWithGetterUsingInstance(
+          expressionStatement,
+          refactoredInstance,
+          newClassInfo,
+          parameterName
+        );
+      }
+    });
+}
+
 function updateInstanceArguments(
-  newExpression: NewExpression,
+  newExpression,
   newClassInfo: NewClassInfo,
   args: Node[]
 ) {

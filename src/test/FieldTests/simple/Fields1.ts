@@ -6,7 +6,7 @@ class Field1 {
   fieldBoolean1: boolean = true;
   //
   //fall instance in class variable
-  // obj3: FieldsWithConstructor;
+  obj3: FieldsWithConstructor;
   //
   //fall instance in constructor
   constructor(
@@ -34,11 +34,16 @@ class Field1 {
     if (this.fieldsY === (this.fieldsY = this.fieldsY + 1) + 8)
       this.fieldsString = "new string" + this.fieldsY.toString();
     console.log("fieldsString", this.fieldsString);
+    this.fieldBoolean1 = this.fieldsString === "OOO";
     //
     //
     let obj4 = new FieldsWithConstructor(true, 2, "waaaw", false);
     //
     // fall usage all instances from method block, method parameter and class variable
-    obj4.fieldBoolean1 = obj5.fieldsString === "";
+    obj4.fieldBoolean1 = obj5.fieldsString === "XXX";
+
+    this.obj3.fieldsY;
+
+    obj5.fieldsString;
   }
 }
