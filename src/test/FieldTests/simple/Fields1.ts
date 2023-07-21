@@ -17,6 +17,7 @@ class Field1 {
   ) {
     //
     //fall usage in constructor body
+    this.obj3 = obj3;
     this.fieldsY = obj3.fieldsY;
     this.fieldsString = obj3.fieldsString;
     this.fieldBoolean1 = obj3.fieldBoolean1;

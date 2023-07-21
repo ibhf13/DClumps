@@ -13,14 +13,11 @@ import {
   SourceFile,
   SyntaxKind,
   VariableDeclaration,
-  ts,
   CallExpression,
   ConstructorDeclaration,
-  TypeReferenceNode,
   ParameterDeclaration,
   PropertyDeclaration,
 } from "ts-morph";
-import * as path from "path";
 import {
   DataClumpsList,
   GlobalCalls,
@@ -28,7 +25,12 @@ import {
   ParameterInfo,
   SmellyFields,
 } from "../utils/Interfaces";
-import { callExpression } from "@babel/types";
+import {
+  getInstanceName,
+  toCamelCase,
+  parameterExists,
+  importNewClass,
+} from "../utils/RefactorUtils";
 
 export function refactorSmellyFields(
   newClassInfo: NewClassInfo,
@@ -56,38 +58,6 @@ function removeSelectedField(
   return methodGroupCopy.smellyFieldGroup.filter(
     (field) => field !== smellyFieldGroup
   );
-}
-
-function determineImportPath(from: string, to: string) {
-  let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
-
-  if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
-    relativePath = "./" + relativePath;
-  }
-
-  relativePath = relativePath.replace(".ts", "");
-
-  return relativePath;
-}
-
-function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
-  const filePath = file.getFilePath();
-  const correctPath = determineImportPath(filePath, newClassInfo.filepath);
-
-  const existingImport = file.getImportDeclaration(
-    (declaration) =>
-      declaration.getModuleSpecifierValue() === correctPath &&
-      declaration
-        .getNamedImports()
-        .some((namedImport) => namedImport.getName() === newClassInfo.className)
-  );
-
-  if (!existingImport) {
-    file.addImportDeclaration({
-      moduleSpecifier: correctPath,
-      namedImports: [newClassInfo.className],
-    });
-  }
 }
 
 function refactorSelectedClassFields(
@@ -118,13 +88,7 @@ function refactorSelectedClassFields(
       "then : refactorMethodBody for each method : ",
       method.getName()
     );
-    refactorMethodBody(
-      method,
-      newClassInfo,
-      classToRefactor,
-      sharedParameters,
-      instanceName
-    );
+    refactorMethodBody(method, newClassInfo, sharedParameters, instanceName);
   });
 
   if (refactoredField.callsInfo.callsList.callsInSame > 0) {
@@ -167,29 +131,11 @@ function refactorSelectedClassFields(
   project.saveSync();
 }
 
-function toCamelCase(name: string) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
-}
-
-function getInstanceName(newClassInfo: NewClassInfo) {
-  const instance = `${newClassInfo.className
-    .charAt(0)
-    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
-  return instance;
-}
-
-function parameterExists(
-  paramName: string,
-  newClassParams: ParameterInfo[]
-): boolean {
-  return newClassParams.some((param) => param.name === paramName);
-}
-
-function getSharedParameters(
+function getSharedFields(
   newClassInfo: NewClassInfo,
   classToRefactor: ClassDeclaration
 ): string[] {
-  const sharedParameters: string[] = [];
+  const sharedFields: string[] = [];
 
   const currentClassParameters = new Map(
     classToRefactor
@@ -202,10 +148,10 @@ function getSharedParameters(
 
   newClassInfo.parameters.forEach((param) => {
     if (currentClassParameters.has(param.name)) {
-      sharedParameters.push(param.name);
+      sharedFields.push(param.name);
     }
   });
-  return sharedParameters;
+  return sharedFields;
 }
 
 function refactorClassProperties(
@@ -245,7 +191,7 @@ function updateFieldsInClass(
   newClassInfo: NewClassInfo,
   classToRefactor: ClassDeclaration
 ): string[] {
-  const sharedParameters = getSharedParameters(newClassInfo, classToRefactor);
+  const sharedParameters = getSharedFields(newClassInfo, classToRefactor);
   refactorClassProperties(classToRefactor, sharedParameters);
   const instanceName = createClassInstance(
     newClassInfo,
@@ -328,7 +274,6 @@ function refactorConstructor(
 function refactorMethodBody(
   method: MethodDeclaration,
   newClassInfo: NewClassInfo,
-  classToRefactor: ClassDeclaration,
   sharedParameters: string[],
   instance: string
 ) {
@@ -488,6 +433,7 @@ function findInstancesOfRefactoredClass(
   propertyDeclarations.forEach((propertyDeclaration) => {
     if (propertyDeclaration.getText().includes(refactoredClass.getName())) {
       updatePropertyDeclaration(propertyDeclaration, newClassInfo);
+      handlePropertyInConstructor(propertyDeclaration, newClassInfo);
     }
   });
 
@@ -545,15 +491,89 @@ function updatePropertyDeclaration(
   });
 }
 
+function handlePropertyInConstructor(
+  propertyDeclaration: PropertyDeclaration,
+  newClassInfo: NewClassInfo
+) {
+  const fieldName = propertyDeclaration.getName();
+  const classDeclaration = propertyDeclaration.getFirstAncestorByKind(
+    SyntaxKind.ClassDeclaration
+  );
+
+  if (!classDeclaration) {
+    console.error(
+      `Failed to get class declaration for: ${propertyDeclaration.getText()}`
+    );
+    return;
+  }
+
+  const constructorDeclaration = classDeclaration.getConstructors()[0];
+  if (!constructorDeclaration) {
+    // No constructor, nothing to modify
+    return;
+  }
+
+  const refactoredInstance = getInstanceName(newClassInfo);
+
+  constructorDeclaration
+    .getBody()
+    .getDescendantStatements()
+    .filter(
+      (statement) => statement.getKind() === SyntaxKind.ExpressionStatement
+    )
+    .forEach((statement) => {
+      if (statement.getText().includes(fieldName)) {
+        refactorPropertyAccess(
+          statement,
+          fieldName,
+          refactoredInstance,
+          newClassInfo
+        );
+      }
+    });
+}
+
+function refactorPropertyAccess(
+  statement,
+  fieldName,
+  refactoredInstance,
+  newClassInfo
+) {
+  statement.getDescendants().forEach((descendant) => {
+    if (descendant instanceof BinaryExpression) {
+      const expressions = descendant.getDescendantsOfKind(
+        SyntaxKind.BinaryExpression
+      );
+
+      expressions.reverse().forEach((binaryExpression) => {
+        if (binaryExpression.getText().includes(fieldName)) {
+          const newExpression = processExpression(
+            binaryExpression,
+            refactoredInstance,
+            newClassInfo
+          );
+          binaryExpression.replaceWithText(newExpression);
+        }
+      });
+    } else if (
+      descendant instanceof PropertyAccessExpression &&
+      descendant.getText().includes(fieldName)
+    ) {
+      const accessedPropertyName = descendant.getName();
+      descendant.replaceWithText(
+        `this.${fieldName}.${refactoredInstance}.get${toCamelCase(
+          accessedPropertyName
+        )}()`
+      );
+    }
+  });
+}
+
 function handleParameterDeclaration(
   parameterDeclaration: ParameterDeclaration,
   newClassInfo: NewClassInfo
 ) {
   const parameterName = parameterDeclaration.getName();
-  console.log("...........................");
-  console.log("parameterName :                             ", parameterName);
-  console.log("...........................");
-
   const methodDeclaration = parameterDeclaration.getFirstAncestorByKind(
     SyntaxKind.MethodDeclaration
   );
