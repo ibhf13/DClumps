@@ -1,4 +1,4 @@
-import { SourceFile } from "ts-morph";
+import { ClassDeclaration, SourceFile, Node } from "ts-morph";
 import { NewClassInfo, ParameterInfo } from "./Interfaces";
 import * as path from "path";
 
@@ -50,4 +50,44 @@ export function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
       namedImports: [newClassInfo.className],
     });
   }
+}
+
+export function getSharedFields(
+  newClassInfo: NewClassInfo,
+  classToRefactor: ClassDeclaration
+): string[] {
+  const sharedFields: string[] = [];
+
+  const currentClassParameters = new Map(
+    classToRefactor
+      .getProperties()
+      .map((property) => [
+        property.getName(),
+        property.getInitializer()?.getText() || "undefined",
+      ])
+  );
+
+  newClassInfo.parameters.forEach((param) => {
+    if (currentClassParameters.has(param.name)) {
+      sharedFields.push(param.name);
+    }
+  });
+  return sharedFields;
+}
+
+export function removeSharedProperties(
+  classToRefactor: ClassDeclaration,
+  sharedParameters: string[]
+) {
+  sharedParameters.forEach((param) => {
+    const property = classToRefactor.getProperty(param);
+    property?.remove();
+  });
+}
+
+export function getArgumentType(arg: Node) {
+  return (
+    arg.getType().getApparentType().getText().charAt(0).toLowerCase() +
+    arg.getType().getApparentType().getText().slice(1)
+  );
 }

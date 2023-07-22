@@ -17,7 +17,6 @@ class Field1 {
   ) {
     //
     //fall usage in constructor body
-    this.obj3 = obj3;
     this.fieldsY = obj3.fieldsY;
     this.fieldsString = obj3.fieldsString;
     this.fieldBoolean1 = obj3.fieldBoolean1;
@@ -43,8 +42,19 @@ class Field1 {
     // fall usage all instances from method block, method parameter and class variable
     obj4.fieldBoolean1 = obj5.fieldsString === "XXX";
 
+    obj4.fieldBoolean1;
     this.obj3.fieldsY;
 
     obj5.fieldsString;
+    //////////////////////
+    //1.own body
+    this.fieldsY.toString();
+
+    //2 RefInstance usage
+    obj4.fieldsY.toString();
+    //3 Parmeter
+    obj5.fieldsY.toString();
+    //4.property acess
+    this.obj3.fieldsY.toString();
   }
 }
