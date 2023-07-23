@@ -1,31 +1,8 @@
 bugs:
-1. handle object list in the fields that relay on other fields 
+1. CallExpression Bug in BinaryExpression
 2. validate the fields name (if other instance have the same name we need to check the right instance)
 3. file bugs
-4. update calls list without errors
-5. check Smelly method refactoring getType.LiteralValue doesnt  work
-
-file path of the call , project 
- refactored class
-
-3. if the name of the refactored class was instanced then 
-update argument 
-update usage
-
-update argument 
-1. instance args 
-2. newClassInfo for updating common argument 
-      refactorClassReferenceName , refactorClass , extractedClassName in goalClass
-      let instance = new className(arg1,arg2,arg3,arg4) 
-      =>
-      let instance = new className(new newClassInfo(arg1,arg2,arg3),arg4) 
-
-update usage
-1. store the new instance name
-2. if it used use processExpression or updateWithGetter
-
-
-
+4. check Smelly method refactoring getType.LiteralValue doesnt  work
 
 
 where can the field call happened in other files?
@@ -35,8 +12,6 @@ where can the field call happened in other files?
 4. in method body
 
 
-1. make more test
-3. handle FieldClumps calls
 
 4. Refactoring up to user (the method choice)
    for the user choice will be new class created and then refactor it first then the rest of the group
@@ -46,9 +21,8 @@ where can the field call happened in other files?
 6. unit test
 7. docs
 
-8. handle inheritance
+8. handle inheritance (tell the user if the to be refactored DataClumps class is sub class or not)
 9. handle interfaces
-10. handle intersect
 11. acceptance Criteria
 
 11. report
