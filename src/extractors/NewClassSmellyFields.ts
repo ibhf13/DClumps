@@ -1,11 +1,5 @@
-import { ClassDeclaration, Project, Scope } from "ts-morph";
-import {
-  DataClumpsList,
-  ParameterInfo,
-  NewClassInfo,
-  SmellyFields,
-} from "../utils/Interfaces";
-import { existsSync } from "fs";
+import { Project } from "ts-morph";
+import { DataClumpsList, SmellyFields } from "../utils/Interfaces";
 import {
   exportNewFileData,
   generateClassVariables,
@@ -15,6 +9,7 @@ import {
   initializeNewClass,
 } from "../utils/newClassUtils";
 import { refactorSmellyFields } from "./RefactoringSmellyFields";
+import { toCamelCase } from "../utils/RefactorUtils";
 
 const project = new Project();
 
@@ -77,10 +72,10 @@ function getFieldGroupWithLeastParameters(
     }
   );
 }
-
+//TODO: maybe can be extracted
 function getNewClassNameFromFieldGroup(smellyFieldGroup: SmellyFields) {
   return smellyFieldGroup.fieldInfo
-    .map((field) => field.name.charAt(0).toUpperCase() + field.name.slice(1))
+    .map((field) => toCamelCase(field.name))
     .join("");
 }
 
