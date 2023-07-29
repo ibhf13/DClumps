@@ -15,6 +15,7 @@ import {
   ParameterInfo,
   SmellyMethods,
 } from "../utils/Interfaces";
+import { getArgumentType } from "../utils/RefactorUtils";
 
 export function refactorMethods(
   newClassInfo: NewClassInfo,
@@ -149,15 +150,7 @@ function refactorMethodCallsUsingThis(
         if (!existingNewClassInstance) {
           for (let i = 0; i < newClassParamTypes.length; i++) {
             let foundIndex = argumentsList.findIndex(
-              (arg) =>
-                arg
-                  .getType()
-                  .getApparentType()
-                  .getText()
-                  .charAt(0)
-                  .toLowerCase() +
-                  arg.getType().getApparentType().getText().slice(1) ===
-                newClassParamTypes[i]
+              (arg) => getArgumentType(arg) === newClassParamTypes[i]
             );
             if (foundIndex !== -1) {
               newClassArguments.push(argumentsList[foundIndex].getText());

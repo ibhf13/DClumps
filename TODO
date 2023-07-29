@@ -16,6 +16,9 @@ where can the field call happened in other files?
    else should be the least parameter method
 
 5. code Optimierung 
+- store all types in Data_Clumps_List 
+- apply SOC ,DRY , SOLID
+
 6. unit test
 7. docs
 
