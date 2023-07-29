@@ -1,4 +1,6 @@
-export class ParameterTest1 {
+import { ParameterTest4 } from "./SimpleParameters2";
+
+class ComplexParameter1 {
   //only one Method
   public smellyMethod1(
     paraX: number,
@@ -14,6 +16,12 @@ export class ParameterTest1 {
     paraX = paraX + paraNumber;
     paraX = paraX + 40;
     paraX = paraX + paraX;
+
+    //3. Call Expresssion
+    paraX.toString();
+    paraBoolean = paraString.valueOf() === paraX.toString();
+    paraBoolean =
+      (paraX = paraNumber + paraX).toString() === paraNumber.toString();
   }
 
   public normalMethod(): void {
@@ -21,7 +29,7 @@ export class ParameterTest1 {
   }
 }
 
-class ParameterTest2 {
+class ComplexParameter2 {
   public smellyMethod2(
     paraString: string,
     paraBoolean: boolean,
@@ -33,8 +41,8 @@ class ParameterTest2 {
 
   public normalMethod(): void {
     this.smellyMethod2("Text", false, 5, 4);
-    let newInstance = new ParameterTest1();
+    let newInstance = new ParameterTest4();
 
-    newInstance.smellyMethod1(2, "string", true);
+    newInstance.smellyMethod4("string", true, 22, 33);
   }
 }
