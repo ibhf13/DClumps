@@ -35,7 +35,7 @@ export function analyzeProjectFiles(
     classesInFile.forEach((cls) => {
       const methods = cls.getMethods();
       methods.forEach((method) => {
-        // Skip if method is a constructor
+        // Skip if method is a constructor for speed
         if (!checkConstructor && method.getName() === "__constructor") return;
 
         compareMethodsWithOtherFiles(

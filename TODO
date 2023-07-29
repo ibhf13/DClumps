@@ -22,6 +22,7 @@ where can the field call happened in other files?
 7. docs
 
 8. handle inheritance (tell the user if the to be refactored DataClumps class is sub class or not)
+check if the class is a parent class? then it need to update all children classes too
 9. handle interfaces
 11. acceptance Criteria
 
