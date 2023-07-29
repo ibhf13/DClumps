@@ -1,3 +1,5 @@
+import { ComplexParameter1 } from "./ComplexParameters";
+
 export class ParameterTest1 {
   //only one Method
   public smellyMethod1(
@@ -18,6 +20,8 @@ export class ParameterTest1 {
 
   public normalMethod(): void {
     this.smellyMethod1(10, "dummy string1", true);
+    let complexInstance = new ComplexParameter1();
+    complexInstance.smellyMethod1(false, 167, "Complex");
   }
 }
 
@@ -34,7 +38,9 @@ class ParameterTest2 {
   public normalMethod(): void {
     this.smellyMethod2("Text", false, 5, 4);
     let newInstance = new ParameterTest1();
-
     newInstance.smellyMethod1(2, "string", true);
+
+    let complexInstance = new ComplexParameter1();
+    complexInstance.smellyMethod1(false, 167, "Complex");
   }
 }

@@ -1,5 +1,6 @@
 import {
   BinaryExpression,
+  CallExpression,
   Project,
   SourceFile,
   SyntaxKind,
@@ -184,20 +185,53 @@ function refactorMethodCallsUsingThis(
     });
   });
 }
+
 function refactorMethodInOtherFile(
   newClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
   callSourceFile: SourceFile
 ) {
-  const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
   const methodCallExpressions = callSourceFile.getDescendantsOfKind(
     SyntaxKind.CallExpression
   );
 
+  const newInstanceDeclaration = callSourceFile.getDescendantsOfKind(
+    SyntaxKind.NewExpression
+  );
+  newInstanceDeclaration.forEach((newExpression) => {
+    if (
+      refactoredMethod.classInfo.className ===
+      newExpression.getExpression().getText()
+    ) {
+      const instanceName = newExpression
+        .getParentIfKind(SyntaxKind.VariableDeclaration)
+        .getName();
+      console.log("------------ ", instanceName);
+
+      UpdateMethodInOtherFile(
+        newClassInfo,
+        refactoredMethod,
+        methodCallExpressions,
+        instanceName
+      );
+      console.log(`Replaced arguments in ${callSourceFile.getFilePath()}`);
+    }
+  });
+}
+
+function UpdateMethodInOtherFile(
+  newClassInfo: NewClassInfo,
+  refactoredMethod: SmellyMethods,
+  methodCallExpressions: CallExpression[],
+  instanceName: string
+) {
+  const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
+
   methodCallExpressions.forEach((callExpression) => {
     const calledMethodName = callExpression.getExpression().getText();
+
     if (
-      !calledMethodName.startsWith("this.") &&
+      calledMethodName.startsWith(instanceName) &&
       calledMethodName.endsWith(`.${refactoredMethod.methodInfo.methodName}`)
     ) {
       const argumentsList = callExpression.getArguments();
@@ -240,8 +274,6 @@ function refactorMethodInOtherFile(
             refactoredMethod.methodInfo.methodName
           }(${updatedArgumentsList.join(", ")})`
         );
-
-        console.log(`Replaced arguments in ${callSourceFile.getFilePath()}`);
       }
     }
   });

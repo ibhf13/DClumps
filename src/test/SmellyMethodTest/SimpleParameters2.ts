@@ -1,3 +1,4 @@
+import { ComplexParameter1 } from "./ComplexParameters";
 import { ParameterTest1 } from "./SimpleParameters";
 
 class ParameterTest3 {
@@ -27,6 +28,9 @@ class ParameterTest3 {
 
     let newInstance = new ParameterTest1();
     newInstance.smellyMethod1(2, "string", true);
+
+    let complexInstance = new ComplexParameter1();
+    complexInstance.smellyMethod1(false, 167, "Complex");
   }
 }
 

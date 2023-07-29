@@ -1,11 +1,12 @@
 import { ParameterTest4 } from "./SimpleParameters2";
 
-class ComplexParameter1 {
+export class ComplexParameter1 {
+  public smellyMethod1(para1: boolean, para2: number, para3: string): void {}
   //only one Method
-  public smellyMethod1(
+  public smellyMethod5(
+    paraBoolean: boolean,
     paraX: number,
-    paraString: string,
-    paraBoolean: boolean
+    paraString: string
   ): void {
     let paraNumber: number = 12;
     //1. Update with getter
@@ -25,7 +26,7 @@ class ComplexParameter1 {
   }
 
   public normalMethod(): void {
-    this.smellyMethod1(10, "dummy string1", true);
+    this.smellyMethod1(true, 10, "dummy string1");
   }
 }
 

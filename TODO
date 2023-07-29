@@ -1,8 +1,6 @@
 bugs:
 1. CallExpression Bug in BinaryExpression
-2. validate the fields name (if other instance have the same name we need to check the right instance)
 3. file bugs
-4. check Smelly method refactoring getType.LiteralValue doesnt  work
 
 
 where can the field call happened in other files?
