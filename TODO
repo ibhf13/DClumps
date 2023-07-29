@@ -1,6 +1,25 @@
-bugs:
-1. CallExpression Bug in BinaryExpression
-3. file bugs
+1. solving bugs:
+   1. CallExpression Bug in BinaryExpression
+   2. Lost nodes in the 2nd iteration 
+
+2. code Optimierung 
+- store all types in Data_Clumps_List 
+- apply SOC ,DRY , SOLID
+
+
+3.GUI: Refactoring up to user (the method choice)
+   for the user choice will be new class created and then refactor it first then the rest of the group
+   else should be the least parameter method
+
+4. handle inheritance (tell the user if the to be refactored DataClumps class is sub class or not)
+check if the class is a parent class? then it need to update all children classes too
+5. handle interfaces the same
+
+6.JSDocs
+7.(optional) unit test
+
+8. report
+
 
 
 where can the field call happened in other files?
@@ -10,25 +29,6 @@ where can the field call happened in other files?
 4. in method body
 
 
-
-4. Refactoring up to user (the method choice)
-   for the user choice will be new class created and then refactor it first then the rest of the group
-   else should be the least parameter method
-
-5. code Optimierung 
-- store all types in Data_Clumps_List 
-- apply SOC ,DRY , SOLID
-
-6. unit test
-7. docs
-
-8. handle inheritance (tell the user if the to be refactored DataClumps class is sub class or not)
-check if the class is a parent class? then it need to update all children classes too
-9. handle interfaces
-11. acceptance Criteria
-
-11. report
-12. gui
 
 current issues:
 handling interfaces if the methode implement interfaces do somthing
