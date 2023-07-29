@@ -144,11 +144,26 @@ function storeFieldInfo(
   clazz: ClassDeclaration,
   filepath: string
 ) {
-  const fieldDetails: ParameterInfo[] = fields.map((fieldVariable) => ({
-    name: fieldVariable.getName(),
-    type: fieldVariable.getType().getText(),
-    value: fieldVariable.getInitializer()?.getText(),
-  }));
+  const fieldDetails: ParameterInfo[] = fields.map(
+    (fieldVariable: PropertyDeclaration) => {
+      let fieldType = fieldVariable.getType().getText();
+
+      if (fieldType.includes("import")) {
+        const typeParts = fieldType.split(".");
+        const simpleTypeName = typeParts[typeParts.length - 1];
+        return {
+          name: fieldVariable.getName(),
+          type: simpleTypeName,
+        };
+      }
+
+      return {
+        name: fieldVariable.getName(),
+        type: fieldVariable.getType().getText(),
+        value: fieldVariable.getInitializer()?.getText(),
+      };
+    }
+  );
 
   const classDetails: ClassInfo = {
     className: clazz.getName() || "",
