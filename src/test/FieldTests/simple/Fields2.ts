@@ -8,18 +8,21 @@ class Fields2 {
   normalMethod(): void {
     this.fieldsY = 50;
     this.fieldsString = this.fieldsY.toString();
-    let obj2 = new FieldsWithConstructor(true, 2, "waaaw", false);
-    obj2.fieldBoolean1 = obj2.fieldsString === obj2.fieldsY.toString();
+    let objInClassFields2 = new FieldsWithConstructor(true, 2, "waaaw", false);
+    objInClassFields2.fieldBoolean1 =
+      objInClassFields2.fieldsString === objInClassFields2.fieldsY.toString();
     //------------------------------------------------------
     //------------------------------------------------------
 
-    let fields3Instance = new Fields3(10, "TESTING", true, obj2);
+    let fields3Instance = new Fields3(10, "TESTING", true, objInClassFields2);
     // non binary statements
     if (fields3Instance.fieldsY === fields3Instance.fieldsY + 9) {
       // non binary statements
       console.log(fields3Instance.fieldsY);
       fields3Instance.fieldBoolean1;
     }
+    // binary statement
+    fields3Instance.fieldsY = 19 + fields3Instance.fieldsY;
 
     //geschachtelete statements
     // binary statement
@@ -33,10 +36,12 @@ class Fields2 {
     let testObj = (fields3Instance.fieldsString =
       // non binary statements (Call expression)
       fields3Instance.fieldsY.toString() + "hi");
-    //------------------------------------------------------
-    //------------------------------------------------------
 
-    // let obj = new Fields22(new FieldsStringFieldsY("name", undefined), 10);
-    // obj.fieldsStringFieldsYInstance.getFieldsY;
+    //Call expression
+
+    fields3Instance.fieldsY.toString();
+
+    fields3Instance.fieldsY.toString() ===
+      fields3Instance.fieldsString.valueOf();
   }
 }

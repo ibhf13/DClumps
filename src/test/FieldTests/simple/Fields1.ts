@@ -35,6 +35,8 @@ class Field1 {
 
     //CallExpression
     this.fieldsY.toString();
+    this.fieldsY.toString() === this.fieldsY.toString();
+
     // Binary Expression + PropertyAccessExpression
     this.fieldsY = 10 * this.fieldsY;
     // 1 semiBinary Expressions(===) 2 Binary Expressions + PropertyAccessExpression +CallExpression
@@ -81,6 +83,8 @@ class Field1 {
       this.obj3.fieldsY.toString() === this.obj3.fieldsString;
     //PropertyAccessExpression
     this.obj3.fieldsY;
+    this.obj3.fieldsY.toString() === this.obj3.fieldsString.valueOf();
+
     //CallExpression
     this.obj3.fieldsY.toString();
   }
