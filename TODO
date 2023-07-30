@@ -1,5 +1,4 @@
 1. solving bugs:
-   1. CallExpression Bug in BinaryExpression
    2. Lost nodes in the 2nd iteration in the constructor
    3. refactoredClass constructor is not done correctly on the right side
    Naming 
