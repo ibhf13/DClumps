@@ -1,6 +1,11 @@
 1. solving bugs:
    1. CallExpression Bug in BinaryExpression
    2. Lost nodes in the 2nd iteration 
+   Naming 
+     refactoredClassInstanceName , refactoredClass ,
+      let instance = new className(arg1,arg2,arg3,arg4) 
+     the Parameter will be updated with new(extractedClassName"newClassInfo") 
+     this happen inside of the UpdateCallsInClassName
 
 2. code Optimierung 
 - store all types in Data_Clumps_List 

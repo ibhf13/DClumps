@@ -52,7 +52,7 @@ export function refactorSmellyFields(
 
   project.saveSync();
 }
-
+//To be extracted
 function removeSelectedField(
   smellyFieldGroup: SmellyFields,
   methodGroupCopy: DataClumpsList

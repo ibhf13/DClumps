@@ -51,7 +51,8 @@ class Field1 {
     //CallExpression
     obj4.fieldsY.toString();
     // Binary Expression + CallExpression + PropertyAccessExpression
-    obj4.fieldBoolean1 = obj4.fieldsY.toString() === obj4.fieldsString;
+    obj4.fieldBoolean1 =
+      obj4.fieldsY.toString() === obj4.fieldsString.valueOf();
     //----------------------------------
 
     //----------------------------------
