@@ -9,10 +9,7 @@ import {
   Project,
   Node,
   PropertyAccessExpression,
-  SourceFile,
   SyntaxKind,
-  VariableDeclaration,
-  CallExpression,
   ConstructorDeclaration,
   ParameterDeclaration,
   PropertyDeclaration,
@@ -930,5 +927,5 @@ function processPropertyAccessExpression(
       extractedClassInstanceName
     );
   }
-  return expression.getText(); // If conditions don't match, return the original text.
+  return expression.getText();
 }
