@@ -67,8 +67,6 @@ function refactorSelectedClassFields(
   refactoredField: SmellyFields,
   project: Project
 ) {
-  console.log("\n\nStart Refactoring in ", refactoredField.classInfo.filepath);
-
   const sourceFile = project.addSourceFileAtPath(
     refactoredField.classInfo.filepath
   );
@@ -78,19 +76,13 @@ function refactorSelectedClassFields(
   const refactoredClass = sourceFile.getClass(
     refactoredField.classInfo.className
   );
-  console.log("Starting Class : ", refactoredField.classInfo.className);
 
   const extractedClassName = getInstanceName(extractedClassInfo);
-  console.log("....\nStart with updateFieldsInClass ");
 
   const sharedFields = getSharedFields(extractedClassInfo, refactoredClass);
   updateFieldsInClass(extractedClassInfo, refactoredClass);
 
   refactoredClass.getMethods().forEach((method) => {
-    console.log(
-      "then : refactorMethodBody for each method : ",
-      method.getName()
-    );
     refactorMethodBody(
       method,
       extractedClassInfo,
@@ -100,15 +92,6 @@ function refactorSelectedClassFields(
   });
 
   if (refactoredField.callsInfo.callsList.callsInSame > 0) {
-    console.log(
-      "--------------------\n",
-      "refactoredField Calls in the same file ",
-      refactoredField.classInfo.filepath,
-      "\nthe name of the class :",
-      refactoredClass.getName(),
-      "\n--------------------"
-    );
-
     findInstancesOfRefactoredClass(
       project,
       refactoredField.classInfo.filepath,
@@ -121,14 +104,6 @@ function refactorSelectedClassFields(
     refactoredField.callsInfo.callsList.callsGlob;
   globalCalls.forEach((call) => {
     project.saveSync();
-    console.log(
-      "--------------------\n",
-      "refactoredField Calls in the other file ",
-      call.classInfo.filepath,
-      "\nthe name of the class :",
-      refactoredClass.getName(),
-      "\n--------------------"
-    );
     findInstancesOfRefactoredClass(
       project,
       call.classInfo.filepath,
@@ -136,6 +111,7 @@ function refactorSelectedClassFields(
       extractedClassInfo
     );
   });
+  sourceFile.formatText();
   project.saveSync();
 }
 
@@ -516,7 +492,7 @@ function findInstancesOfRefactoredClass(
     (node) => node.getText().includes(className),
     extractedClassInfo
   );
-
+  sourceFile.formatText();
   project.saveSync();
 }
 //checkFn : check fields name
@@ -828,8 +804,6 @@ function updateInstanceUsage(
     );
     return;
   }
-  console.log(`Instance name: ${instanceName}  `);
-
   const methodDeclaration = newExpression.getFirstAncestorByKind(
     SyntaxKind.MethodDeclaration
   );
@@ -901,11 +875,6 @@ function updateWithGetter(
     });
 
   propertyAccessesToUpdate.forEach((propertyAccess) => {
-    const propName = propertyAccess.getName();
-
-    console.log("propertyAccessesToUpdate : ", propertyAccess.getText());
-    console.log("propName1 : ", propName);
-
     const updateText = replacePropertyAccess(
       usesThis,
       propertyAccess,
