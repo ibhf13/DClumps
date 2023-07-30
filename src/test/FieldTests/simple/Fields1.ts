@@ -29,6 +29,10 @@ class Field1 {
     //1.own simple Fields
     //PropertyAccessExpression
     let temp = this.fieldsY + 20;
+
+    this.fieldBoolean1;
+    this.fieldsY;
+
     //CallExpression
     this.fieldsY.toString();
     // Binary Expression + PropertyAccessExpression
@@ -61,6 +65,9 @@ class Field1 {
     obj5.fieldsString = obj5.fieldsString + obj5.fieldsString;
     //CallExpression
     obj5.fieldsY.toString();
+
+    obj5.fieldBoolean1;
+
     // Binary Expression + CallExpression + PropertyAccessExpression
     obj5.fieldBoolean1 = obj5.fieldsY.toString() === obj5.fieldsString;
     // Binary Expression + 2 CallExpression

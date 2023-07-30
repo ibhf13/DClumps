@@ -58,7 +58,7 @@ export function getSharedFields(
 ): string[] {
   const sharedFields: string[] = [];
 
-  const currentClassParameters = new Map(
+  const currentClassFields = new Map(
     classToRefactor
       .getProperties()
       .map((property) => [
@@ -68,7 +68,7 @@ export function getSharedFields(
   );
 
   newClassInfo.parameters.forEach((param) => {
-    if (currentClassParameters.has(param.name)) {
+    if (currentClassFields.has(param.name)) {
       sharedFields.push(param.name);
     }
   });
