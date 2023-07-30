@@ -188,6 +188,9 @@ function replaceConstructorAssignments(
   sharedParameters: string[],
   instanceName: string
 ) {
+  let leftText: string;
+  let rightText: string;
+
   constructor
     .getStatements()
     .filter(
@@ -199,16 +202,31 @@ function replaceConstructorAssignments(
         const binaryExpression = expression as BinaryExpression;
         const left = binaryExpression.getLeft();
         const right = binaryExpression.getRight();
+        leftText = left.getText();
+        rightText = right.getText();
         if (
           left instanceof PropertyAccessExpression &&
           left.getExpression().getKind() === SyntaxKind.ThisKeyword &&
           sharedParameters.includes(left.getName())
         ) {
-          binaryExpression.replaceWithText(
-            `this.${instanceName}.set${toCamelCase(
-              left.getName()
-            )}(${right.getText()})`
-          );
+          leftText = `this.${instanceName}.set${toCamelCase(left.getName())}`;
+        }
+        if (
+          right instanceof Identifier &&
+          sharedParameters.includes(right.getText())
+        ) {
+          rightText = `this.${instanceName}.get${toCamelCase(
+            right.getText()
+          )}()`;
+        }
+        if (
+          left instanceof PropertyAccessExpression &&
+          left.getExpression().getKind() === SyntaxKind.ThisKeyword &&
+          sharedParameters.includes(left.getName())
+        ) {
+          binaryExpression.replaceWithText(`${leftText}(${rightText})`);
+        } else {
+          binaryExpression.replaceWithText(`${leftText} = ${rightText}`);
         }
       }
     });

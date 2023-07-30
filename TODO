@@ -1,6 +1,5 @@
 1. solving bugs:
    2. Lost nodes in the 2nd iteration in the constructor
-   3. refactoredClass constructor is not done correctly on the right side
    Naming 
      refactoredClassInstanceName , refactoredClass ,
       let instance = new className(arg1,arg2,arg3,arg4) 
