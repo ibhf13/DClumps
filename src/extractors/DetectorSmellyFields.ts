@@ -101,9 +101,8 @@ function findMatchingFields(
   minDataClumps: number
 ) {
   // exclude  private fields
-  const otherFields: PropertyDeclaration[] = otherClass
-    .getProperties()
-    .filter((field) => !field.hasModifier(SyntaxKind.PrivateKeyword));
+  const otherFields: PropertyDeclaration[] = otherClass.getProperties();
+  // .filter((field) => !field.hasModifier(SyntaxKind.PrivateKeyword));
 
   if (otherFields.length >= minDataClumps) {
     if (doParametersMatch(fields, otherFields, minDataClumps)) {

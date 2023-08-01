@@ -1,13 +1,13 @@
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
 //data clumps of 4
 class Field1 {
-  fieldsY: number;
-  fieldsString: string;
+  private fieldsY: number;
+  private fieldsString: string;
 
-  fieldBoolean1: boolean = true;
+  private fieldBoolean1: boolean = true;
   //4.Fields Object as Classes Field
   //fall instance in class variable
-  obj3: FieldsWithConstructor;
+  private obj3: FieldsWithConstructor;
   //
   //falls 4  in constructor
   constructor(

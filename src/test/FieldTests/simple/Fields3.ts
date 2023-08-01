@@ -1,9 +1,9 @@
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
 
 export class Fields3 {
-  fieldsY: number;
-  fieldsString: string;
-  fieldBoolean1: boolean = true;
+  private fieldsY: number;
+  private fieldsString: string;
+  private fieldBoolean1: boolean = true;
   //
   //fall instance in class variable
   obj3: FieldsWithConstructor = new FieldsWithConstructor(

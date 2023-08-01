@@ -112,12 +112,12 @@ function main() {
     "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
     JSON.stringify(dataClumpsListWithFields, null, 2)
   );
-  console.log("Create new Classes for Smelly Fields");
+  // console.log("Create new Classes for Smelly Fields");
 
-  createNewClassesFromSmellyFieldDataClumpsList(
-    dataClumpsListWithFields,
-    outputPath
-  );
+  // createNewClassesFromSmellyFieldDataClumpsList(
+  //   dataClumpsListWithFields,
+  //   outputPath
+  // );
 }
 
 // Run the main function
