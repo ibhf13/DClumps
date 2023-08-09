@@ -17,6 +17,20 @@ import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 let smellyFieldGroup: SmellyFields[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 
+function addMetaInfo() {
+  const metaInfo = {
+    numberOfSmellyFieldGroups: Data_Clumps_List.length,
+    totalNumberOfDataClumps: Data_Clumps_List.reduce(
+      (total, clump) => total + (clump.smellyFieldGroup?.length || 0),
+      0
+    ),
+  };
+
+  Data_Clumps_List.unshift({
+    metaInfo,
+  });
+}
+
 export function DetectSmellyFields(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
@@ -24,7 +38,6 @@ export function DetectSmellyFields(
   excludeFolders: string[]
 ): DataClumpsList[] {
   let sourceFiles = codeAnalyzerProject.getSourceFiles();
-
   sourceFiles.forEach((file) => {
     let classesInFile = file.getClasses();
     classesInFile.forEach((cls) => {
@@ -38,7 +51,6 @@ export function DetectSmellyFields(
       );
     });
     if (smellyFieldGroup.length > 1) {
-      console.log(`\nDetected ${smellyFieldGroup.length} Smelly Fields\n`);
       Data_Clumps_List.push({
         smellyFieldGroup: [...smellyFieldGroup],
       });
@@ -46,7 +58,21 @@ export function DetectSmellyFields(
     }
   });
 
+  addMetaInfo();
+  setSmellyFieldKeys(Data_Clumps_List);
+
+  console.log(
+    `\nDetected ${Data_Clumps_List[0].metaInfo.totalNumberOfDataClumps} Smelly Fields\n`
+  );
+
   return Data_Clumps_List;
+}
+function setSmellyFieldKeys(Data_Clumps_List) {
+  Data_Clumps_List.forEach((dataClump, groupIndex) => {
+    dataClump.smellyFieldGroup?.forEach((smellyField, fieldIndex) => {
+      smellyField.key = `${groupIndex}${fieldIndex + 1}`;
+    });
+  });
 }
 
 function compareFieldsWithOtherFiles(
@@ -154,12 +180,14 @@ function storeFieldInfo(
         const typeParts = fieldType.split(".");
         const simpleTypeName = typeParts[typeParts.length - 1];
         return {
+          scoop: fieldVariable.getScope(),
           name: fieldVariable.getName(),
           type: simpleTypeName,
         };
       }
 
       return {
+        scoop: fieldVariable.getScope(),
         name: fieldVariable.getName(),
         type: fieldVariable.getType().getText(),
         value: fieldVariable.getInitializer()?.getText(),
@@ -173,6 +201,7 @@ function storeFieldInfo(
   };
 
   const smellyField: SmellyFields = {
+    key: 0,
     fieldInfo: fieldDetails,
     classInfo: classDetails,
     callsInfo: {

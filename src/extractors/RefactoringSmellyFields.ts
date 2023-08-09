@@ -442,7 +442,7 @@ function refactorNodes(nodes, checkFn, extractedClassInfo) {
       } else if (node.getKind() === SyntaxKind.PropertyDeclaration) {
         // Handling PropertyDeclarations logic
         updatePropertyDeclaration(node, extractedClassInfo);
-        handlePropertyInConstructor(node, extractedClassInfo);
+        //handlePropertyInConstructor(node, extractedClassInfo);
       }
     }
   });

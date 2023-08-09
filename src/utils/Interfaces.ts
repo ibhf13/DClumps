@@ -1,4 +1,5 @@
 export interface ParameterInfo {
+  scoop: string;
   name: string;
   type: string;
   value?: string | undefined;
@@ -53,12 +54,17 @@ export interface SmellyFunction {
 }
 
 export interface SmellyFields {
+  key: number;
   fieldInfo: ParameterInfo[];
   classInfo: ClassInfo;
   callsInfo?: CallsInfo;
 }
 
 export interface DataClumpsList {
+  metaInfo?: {
+    numberOfSmellyFieldGroups: number;
+    totalNumberOfDataClumps: number;
+  };
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
   smellyFieldGroup?: SmellyFields[];

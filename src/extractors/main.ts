@@ -105,7 +105,7 @@ function main() {
   );
 
   console.log(
-    `found ${dataClumpsListWithFields.length} SmellyFields dataclumps`
+    `found ${dataClumpsListWithFields[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
   );
 
   writeFileSync(
