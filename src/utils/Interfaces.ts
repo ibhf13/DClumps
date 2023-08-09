@@ -1,5 +1,5 @@
 export interface ParameterInfo {
-  scoop: string;
+  scoop?: string;
   name: string;
   type: string;
   value?: string | undefined;
@@ -37,6 +37,7 @@ export interface MethodInfo {
 }
 
 export interface SmellyMethods {
+  key: number;
   methodInfo: MethodInfo;
   classInfo: ClassInfo;
   callsInfo: CallsInfo;

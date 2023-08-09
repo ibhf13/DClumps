@@ -1,4 +1,9 @@
-import { Project, PropertyDeclaration, SyntaxKind } from "ts-morph";
+import {
+  ParameterDeclaration,
+  Project,
+  PropertyDeclaration,
+  SyntaxKind,
+} from "ts-morph";
 
 export function projectFileList(
   toAnalyzeProjectFolder: string,
@@ -20,8 +25,8 @@ export function projectFileList(
 }
 
 export function doParametersMatch(
-  params1: PropertyDeclaration[],
-  params2: PropertyDeclaration[],
+  params1,
+  params2,
   minDataClumps: number
 ): boolean {
   let matchMap = new Map();

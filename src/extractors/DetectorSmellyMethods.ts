@@ -20,6 +20,14 @@ import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 
+function setSmellyMethodKeys(Data_Clumps_List) {
+  Data_Clumps_List.forEach((dataClump, groupIndex) => {
+    dataClump.smellyMethodGroup?.forEach((smellyMethod, fieldIndex) => {
+      smellyMethod.key = `${groupIndex}${fieldIndex + 1}`;
+    });
+  });
+}
+
 export function analyzeProjectFiles(
   codeAnalyzerProject: Project,
   toAnalyzeProjectFolder: string,
@@ -58,6 +66,7 @@ export function analyzeProjectFiles(
       smellyMethodGroup = [];
     }
   });
+  setSmellyMethodKeys(Data_Clumps_List);
 
   return Data_Clumps_List;
 }
@@ -198,6 +207,7 @@ function storeMethodInfo(
   };
 
   const smellyMethod: SmellyMethods = {
+    key: 0,
     methodInfo: methodDetails,
     classInfo: classDetails,
     callsInfo: {
