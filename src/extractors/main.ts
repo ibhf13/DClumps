@@ -74,44 +74,46 @@ function main() {
   //const dataclumpsFilepath = "./src/output/jsonDclumps/Data_Clumps_List.json";
   //const DataClumpsListFromFile = getDataClumpsList(dataclumpsFilepath);
 
-  // // Analyze the project files for data clumps
-  // codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
-  // let dataClumpsList = analyzeProjectFiles(
-  //   codeAnalyzerProject,
-  //   toAnalyzeProjectFolder,
-  //   MIN_MATCHES,
-  //   withConstructor,
-  //   excludedFolders
-  // );
-  // writeFileSync(
-  //   "./src/output/jsonDclumps/Data_Clumps_List.json",
-  //   JSON.stringify(dataClumpsList, null, 2)
-  // );
-  // console.log(`found ${dataClumpsList.length} Smelly Methods dataclumps`);
-
-  // console.log("\n\n\nStart refactoring \n...");
-  // console.log("Create new Classes for Smelly Methods");
-
-  // createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
-  //-------------------------------------------------------------------------
-
-  codeAnalyzerProject2.addSourceFilesAtPaths(toAnalyzeProjectFolder);
-
-  let dataClumpsListWithFields = DetectSmellyFields(
-    codeAnalyzerProject2,
+  // Analyze the project files for data clumps
+  codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
+  let dataClumpsList = analyzeProjectFiles(
+    codeAnalyzerProject,
     toAnalyzeProjectFolder,
     MIN_MATCHES,
+    withConstructor,
     excludedFolders
   );
-
-  console.log(
-    `found ${dataClumpsListWithFields[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
-  );
-
   writeFileSync(
-    "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
-    JSON.stringify(dataClumpsListWithFields, null, 2)
+    "./src/output/jsonDclumps/Data_Clumps_List.json",
+    JSON.stringify(dataClumpsList, null, 2)
   );
+  console.log(
+    `found ${dataClumpsList[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
+  );
+
+  console.log("\n\n\nStart refactoring \n...");
+  console.log("Create new Classes for Smelly Methods");
+
+  createNewClassesFromDataClumpsList(dataClumpsList, outputPath);
+  //-------------------------------------------------------------------------
+
+  // codeAnalyzerProject2.addSourceFilesAtPaths(toAnalyzeProjectFolder);
+
+  // let dataClumpsListWithFields = DetectSmellyFields(
+  //   codeAnalyzerProject2,
+  //   toAnalyzeProjectFolder,
+  //   MIN_MATCHES,
+  //   excludedFolders
+  // );
+
+  // console.log(
+  //   `found ${dataClumpsListWithFields[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
+  // );
+
+  // writeFileSync(
+  //   "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
+  //   JSON.stringify(dataClumpsListWithFields, null, 2)
+  // );
   // console.log("Create new Classes for Smelly Fields");
 
   // createNewClassesFromSmellyFieldDataClumpsList(

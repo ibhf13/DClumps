@@ -16,7 +16,11 @@ export function createNewClassesFromDataClumpsList(
   dataClumpsList: DataClumpsList[],
   outputPath: string
 ) {
-  dataClumpsList.forEach((smellymethodGroup) => {
+  const smellyMethodsList = dataClumpsList.filter(
+    (dataClump) => dataClump.smellyMethods && dataClump.smellyMethods.length > 0
+  );
+
+  smellyMethodsList.forEach((smellymethodGroup) => {
     createNewClass(smellymethodGroup, outputPath);
   });
 
@@ -43,12 +47,12 @@ function createNewClass(smellymethodGroup, outputPath: string) {
     leastParameterMethod.methodInfo.parameters,
     outputPath
   );
-  refactorMethods(
-    newClassInfo,
-    leastParameterMethod,
-    smellymethodGroup,
-    project
-  );
+  // refactorMethods(
+  //   newClassInfo,
+  //   leastParameterMethod,
+  //   smellymethodGroup,
+  //   project
+  // );
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );
@@ -58,7 +62,7 @@ function getMethodWithLeastParameters(
   dataClumpsList: DataClumpsList
 ): SmellyMethods {
   // Assuming dataClumpsList.smellyMethods is not undefined
-  return dataClumpsList.smellyMethods!.reduce((leastMethod, currentMethod) => {
+  return dataClumpsList.smellyMethods?.reduce((leastMethod, currentMethod) => {
     return currentMethod.methodInfo.parameters.length <
       leastMethod.methodInfo.parameters.length
       ? currentMethod

@@ -20,11 +20,25 @@ import { doParametersMatch, projectFileList } from "../utils/DetectionsUtils";
 let smellyMethodGroup: SmellyMethods[] = [];
 let Data_Clumps_List: DataClumpsList[] = [];
 
-function setSmellyMethodKeys(Data_Clumps_List) {
+function setSmellyMethodKeys(Data_Clumps_List: DataClumpsList[]) {
   Data_Clumps_List.forEach((dataClump, groupIndex) => {
-    dataClump.smellyMethodGroup?.forEach((smellyMethod, fieldIndex) => {
+    dataClump.smellyMethods?.forEach((smellyMethod, fieldIndex) => {
       smellyMethod.key = `${groupIndex}${fieldIndex + 1}`;
     });
+  });
+}
+
+function addMetaInfo() {
+  const metaInfo = {
+    numberOfSmellyFieldGroups: Data_Clumps_List.length,
+    totalNumberOfDataClumps: Data_Clumps_List.reduce(
+      (total, clump) => total + (clump.smellyMethods?.length || 0),
+      0
+    ),
+  };
+
+  Data_Clumps_List.unshift({
+    metaInfo,
   });
 }
 
@@ -59,15 +73,19 @@ export function analyzeProjectFiles(
     });
 
     if (smellyMethodGroup.length > 1) {
-      console.log(`Detected ${smellyMethodGroup.length} smelly methods`);
       Data_Clumps_List.push({
         smellyMethods: [...smellyMethodGroup],
       });
       smellyMethodGroup = [];
     }
   });
+
+  addMetaInfo();
   setSmellyMethodKeys(Data_Clumps_List);
 
+  console.log(
+    `\nDetected ${Data_Clumps_List[0].metaInfo.totalNumberOfDataClumps} Smelly Fields\n`
+  );
   return Data_Clumps_List;
 }
 

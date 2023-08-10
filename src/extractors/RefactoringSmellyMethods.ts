@@ -1,21 +1,47 @@
 import {
   BinaryExpression,
   CallExpression,
+  ClassDeclaration,
+  MethodDeclaration,
+  ParameterDeclaration,
   Project,
   SourceFile,
   SyntaxKind,
-  ts,
 } from "ts-morph";
-import * as path from "path";
 import {
   CallsInfo,
   DataClumpsList,
   GlobalCalls,
   NewClassInfo,
-  ParameterInfo,
   SmellyMethods,
 } from "../utils/Interfaces";
-import { getArgumentType } from "../utils/RefactorUtils";
+import {
+  getArgumentType,
+  getInstanceName,
+  importNewClass,
+  parameterExists,
+  toCamelCase,
+} from "../utils/RefactorUtils";
+
+// export function refactorMethods(
+//   newClassInfo: NewClassInfo,
+//   leastParameterMethod: SmellyMethods,
+//   methodGroup: DataClumpsList,
+//   project: Project
+// ) {
+//   refactorSelectedMethod(newClassInfo, leastParameterMethod, project);
+//   const methodGroupCopy = removeSelectedMethod(
+//     leastParameterMethod,
+//     methodGroup
+//   );
+
+//   for (const method of methodGroupCopy) {
+//     refactorSelectedMethod(newClassInfo, method, project);
+//     //console.log(method.methodInfo, method.classInfo.className);
+//   }
+
+//   project.saveSync();
+// }
 
 export function refactorMethods(
   newClassInfo: NewClassInfo,
@@ -23,16 +49,18 @@ export function refactorMethods(
   methodGroup: DataClumpsList,
   project: Project
 ) {
-  refactorSelectedMethod(newClassInfo, leastParameterMethod, project);
-  const methodGroupCopy = removeSelectedMethod(
-    leastParameterMethod,
-    methodGroup
+  let userKeys: number[] = [11, 12]; // <-- add this parameter for user provided keys
+
+  // Filter the methods using the userKeys
+  const filteredMethods = methodGroup.smellyMethods.filter((method) =>
+    userKeys.includes(method.key)
   );
 
-  for (const method of methodGroupCopy) {
+  // rest of your code...
+  filteredMethods.forEach((method) => {
     refactorSelectedMethod(newClassInfo, method, project);
     //console.log(method.methodInfo, method.classInfo.className);
-  }
+  });
 
   project.saveSync();
 }
@@ -44,45 +72,6 @@ function removeSelectedMethod(
   return methodGroupCopy.smellyMethods.filter(
     (method) => method !== leastParameterMethod
   );
-}
-
-function parameterExists(
-  paramName: string,
-  newClassParams: ParameterInfo[]
-): boolean {
-  return newClassParams.some((param) => param.name === paramName);
-}
-
-function determineImportPath(from: string, to: string) {
-  let relativePath = path.relative(path.dirname(from), to).replace(/\\/g, "/");
-
-  if (!relativePath.startsWith("../") && !relativePath.startsWith("./")) {
-    relativePath = "./" + relativePath;
-  }
-
-  relativePath = relativePath.replace(".ts", "");
-
-  return relativePath;
-}
-
-function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
-  const filePath = file.getFilePath();
-  const correctPath = determineImportPath(filePath, newClassInfo.filepath);
-
-  const existingImport = file.getImportDeclaration(
-    (declaration) =>
-      declaration.getModuleSpecifierValue() === correctPath &&
-      declaration
-        .getNamedImports()
-        .some((namedImport) => namedImport.getName() === newClassInfo.className)
-  );
-
-  if (!existingImport) {
-    file.addImportDeclaration({
-      moduleSpecifier: correctPath,
-      namedImports: [newClassInfo.className],
-    });
-  }
 }
 
 function refactorSelectedMethod(
@@ -124,7 +113,7 @@ function refactorSelectedMethod(
 function refactorMethodCallsUsingThis(
   newClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
-  allMethods
+  allMethods: MethodDeclaration[]
 ) {
   const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
 
@@ -272,7 +261,10 @@ function UpdateMethodInOtherFile(
   });
 }
 
-function updateMethodParameters(newClassInfo: NewClassInfo, method) {
+function updateMethodParameters(
+  newClassInfo: NewClassInfo,
+  method: MethodDeclaration
+) {
   const methodParameters = method.getParameters();
   const sharedParameters = methodParameters.filter((param) =>
     parameterExists(param.getName(), newClassInfo.parameters)
@@ -294,13 +286,6 @@ function updateMethodParameters(newClassInfo: NewClassInfo, method) {
   }
 
   return sharedParameters;
-}
-
-function getInstanceName(newClassInfo: NewClassInfo) {
-  const instance = `${newClassInfo.className
-    .charAt(0)
-    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
-  return instance;
 }
 
 function processExpression(expression, instance, newClassInfo) {
@@ -339,8 +324,8 @@ function processExpression(expression, instance, newClassInfo) {
 
 function updateMethodBody(
   newClassInfo: NewClassInfo,
-  method,
-  sharedParameters
+  method: MethodDeclaration,
+  sharedParameters: ParameterDeclaration[]
 ) {
   const instance = getInstanceName(newClassInfo);
 
@@ -366,7 +351,10 @@ function updateMethodBody(
   updateMethodWithGetter(newClassInfo, method);
 }
 //cant put type for method because of the finding the right statement wont work
-function updateMethodWithGetter(newClassInfo: NewClassInfo, method) {
+function updateMethodWithGetter(
+  newClassInfo: NewClassInfo,
+  method: MethodDeclaration
+) {
   const instance = getInstanceName(newClassInfo);
 
   method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((identifier) => {
@@ -376,8 +364,4 @@ function updateMethodWithGetter(newClassInfo: NewClassInfo, method) {
       identifier.replaceWithText(getterExpression);
     }
   });
-}
-
-function toCamelCase(name: string) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
 }
