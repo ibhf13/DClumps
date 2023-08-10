@@ -37,7 +37,7 @@ export interface MethodInfo {
 }
 
 export interface SmellyMethods {
-  key: number;
+  key: string;
   methodInfo: MethodInfo;
   classInfo: ClassInfo;
   callsInfo: CallsInfo;

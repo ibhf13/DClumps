@@ -47,12 +47,12 @@ function createNewClass(smellymethodGroup, outputPath: string) {
     leastParameterMethod.methodInfo.parameters,
     outputPath
   );
-  // refactorMethods(
-  //   newClassInfo,
-  //   leastParameterMethod,
-  //   smellymethodGroup,
-  //   project
-  // );
+  refactorMethods(
+    newClassInfo,
+    leastParameterMethod,
+    smellymethodGroup,
+    project
+  );
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );

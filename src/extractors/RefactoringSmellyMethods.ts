@@ -23,56 +23,40 @@ import {
   toCamelCase,
 } from "../utils/RefactorUtils";
 
-// export function refactorMethods(
-//   newClassInfo: NewClassInfo,
-//   leastParameterMethod: SmellyMethods,
-//   methodGroup: DataClumpsList,
-//   project: Project
-// ) {
-//   refactorSelectedMethod(newClassInfo, leastParameterMethod, project);
-//   const methodGroupCopy = removeSelectedMethod(
-//     leastParameterMethod,
-//     methodGroup
-//   );
-
-//   for (const method of methodGroupCopy) {
-//     refactorSelectedMethod(newClassInfo, method, project);
-//     //console.log(method.methodInfo, method.classInfo.className);
-//   }
-
-//   project.saveSync();
-// }
-
 export function refactorMethods(
   newClassInfo: NewClassInfo,
   leastParameterMethod: SmellyMethods,
-  methodGroup: DataClumpsList,
+  Data_Clumps_List: DataClumpsList,
   project: Project
 ) {
-  let userKeys: number[] = [11, 12]; // <-- add this parameter for user provided keys
-
-  // Filter the methods using the userKeys
-  const filteredMethods = methodGroup.smellyMethods.filter((method) =>
-    userKeys.includes(method.key)
+  let userKeys: string[] = ["12"];
+  let methodGroup: SmellyMethods[] = filterMethodsByKeys(
+    Data_Clumps_List.smellyMethods,
+    userKeys
   );
-
-  // rest of your code...
-  filteredMethods.forEach((method) => {
+  for (const method of methodGroup) {
     refactorSelectedMethod(newClassInfo, method, project);
     //console.log(method.methodInfo, method.classInfo.className);
-  });
+  }
 
   project.saveSync();
 }
 
-function removeSelectedMethod(
-  leastParameterMethod: SmellyMethods,
-  methodGroupCopy: DataClumpsList
+function filterMethodsByKeys(
+  methods: SmellyMethods[],
+  keys: string[]
 ): SmellyMethods[] {
-  return methodGroupCopy.smellyMethods.filter(
-    (method) => method !== leastParameterMethod
-  );
+  return methods.filter((method) => keys.includes(method.key));
 }
+
+// function removeSelectedMethod(
+//   leastParameterMethod: SmellyMethods,
+//   methodGroupCopy: DataClumpsList
+// ): SmellyMethods[] {
+//   return methodGroupCopy.smellyMethods.filter(
+//     (method) => method !== leastParameterMethod
+//   );
+// }
 
 function refactorSelectedMethod(
   newClassInfo: NewClassInfo,

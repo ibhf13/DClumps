@@ -225,7 +225,7 @@ function storeMethodInfo(
   };
 
   const smellyMethod: SmellyMethods = {
-    key: 0,
+    key: "0",
     methodInfo: methodDetails,
     classInfo: classDetails,
     callsInfo: {
