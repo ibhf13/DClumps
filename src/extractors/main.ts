@@ -22,7 +22,6 @@ import {
   filterSmellyMethods,
   removeMetaInfo,
 } from "../utils/newClassUtils";
-import { get } from "lodash";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
