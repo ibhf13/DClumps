@@ -237,13 +237,16 @@ async function main() {
     refactoredKeys
   );
 
+  const useOptimum: boolean = await wantsOptimumSolution();
+
   if (allInSameGroup) {
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
-    if (wantsOptimumSolution()) {
+    if (useOptimum) {
       const userChoiceGroup = filterSmellyMethods(dataClumps, allKeys);
       createNewClassesFromDataClumpsList(userChoiceGroup, outputPath);
+    } else {
+      createNewClassesUsingKey(dataClumps, outputPath, allKeys);
     }
-    createNewClassesUsingKey(dataClumps, outputPath, allKeys);
   } else {
     console.log("The keys are not in the same group");
   }
