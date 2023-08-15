@@ -1,8 +1,8 @@
 import { Project } from "ts-morph";
 import { analyzeProjectFiles } from "./DetectorSmellyMethods";
 import {
-  createNewClassesFromDataClumpsList,
-  createNewClassesUsingKey,
+  createNewClassesFromKeyList,
+  createNewClassesUsingAnchorKey,
 } from "./NewClassSmellyMethods";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
@@ -243,9 +243,9 @@ async function main() {
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
     if (useOptimum) {
       const userChoiceGroup = filterSmellyMethods(dataClumps, allKeys);
-      createNewClassesFromDataClumpsList(userChoiceGroup, outputPath);
+      createNewClassesFromKeyList(userChoiceGroup, outputPath);
     } else {
-      createNewClassesUsingKey(dataClumps, outputPath, allKeys);
+      createNewClassesUsingAnchorKey(dataClumps, outputPath, allKeys);
     }
   } else {
     console.log("The keys are not in the same group");

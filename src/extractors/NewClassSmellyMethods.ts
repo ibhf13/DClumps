@@ -25,7 +25,7 @@ function getSmellyMethodWithKey(
   return foundMethod || null;
 }
 
-export function createNewClassesUsingKey(
+export function createNewClassesUsingAnchorKey(
   dataClumpsList: DataClumpsList[],
   outputPath: string,
   allKeys: string[]
@@ -35,12 +35,11 @@ export function createNewClassesUsingKey(
   project.saveSync();
 }
 
-export function createNewClassesFromDataClumpsList(
+export function createNewClassesFromKeyList(
   smellyMethodGroup: SmellyMethods[],
   outputPath: string
 ) {
   createNewClassFromGroup(smellyMethodGroup, outputPath);
-
   project.saveSync();
 }
 
