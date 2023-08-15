@@ -1,5 +1,11 @@
 import { ClassDeclaration, Project, Scope } from "ts-morph";
-import { ParameterInfo, NewClassInfo, DataClumpsType } from "./Interfaces";
+import {
+  ParameterInfo,
+  NewClassInfo,
+  DataClumpsType,
+  DataClumpsList,
+  SmellyMethods,
+} from "./Interfaces";
 import { existsSync } from "fs";
 
 export function generateUniqueFileName(
@@ -136,4 +142,47 @@ export function exportNewFileData(
     filepath: filePath,
     parameters: parameters,
   };
+}
+
+export function removeMetaInfo(
+  dataClumpsList: DataClumpsList[]
+): DataClumpsList[] {
+  dataClumpsList.shift();
+  return dataClumpsList;
+}
+
+export function filterSmellyMethods(
+  dataClumpsList: DataClumpsList[],
+  keyList: string[]
+): SmellyMethods[] {
+  // Initialize the result array.
+  const result: SmellyMethods[] = [];
+
+  // Iterate over each data clump.
+  for (const dataClump of dataClumpsList) {
+    if (dataClump.smellyMethods) {
+      // Filter the smelly methods based on the key list.
+      const filteredMethods = dataClump.smellyMethods.filter((smellyMethod) =>
+        keyList.includes(smellyMethod.key)
+      );
+
+      // Push the filtered methods to the result array.
+      result.push(...filteredMethods);
+    }
+  }
+
+  return result;
+}
+
+export function filterBySmellyKeys(
+  dataClumpsList: DataClumpsList[],
+  keys: string[]
+): DataClumpsList[] {
+  return dataClumpsList.filter(
+    (clump) =>
+      clump.smellyMethods &&
+      clump.smellyMethods.some((smellyMethod) =>
+        keys.includes(smellyMethod.key)
+      )
+  );
 }

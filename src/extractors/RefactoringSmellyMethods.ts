@@ -23,25 +23,21 @@ import {
   toCamelCase,
 } from "../utils/RefactorUtils";
 
-export function refactorMethods(
+export function refactorMethodsUsingKey(
   newClassInfo: NewClassInfo,
-  leastParameterMethod: SmellyMethods,
-  Data_Clumps_List: DataClumpsList,
-  project: Project
+  project: Project,
+  refactoredKeysList: string[]
 ) {
-  let userKeys: string[] = ["12"];
-  let methodGroup: SmellyMethods[] = filterMethodsByKeys(
-    Data_Clumps_List.smellyMethods,
-    userKeys
-  );
-  for (const method of methodGroup) {
-    refactorSelectedMethod(newClassInfo, method, project);
-    //console.log(method.methodInfo, method.classInfo.className);
-  }
-
-  project.saveSync();
+  // let methodGroup: SmellyMethods[] = filterMethodsByKeys(
+  //   smellyMethod,
+  //   refactoredKeysList
+  // );
+  // refactorSelectedMethod(newClassInfo, smellyMethod, project);
+  // project.saveSync();
 }
 
+//hier gehts weiter
+//key[] instead of key
 function filterMethodsByKeys(
   methods: SmellyMethods[],
   keys: string[]
@@ -49,14 +45,34 @@ function filterMethodsByKeys(
   return methods.filter((method) => keys.includes(method.key));
 }
 
-// function removeSelectedMethod(
-//   leastParameterMethod: SmellyMethods,
-//   methodGroupCopy: DataClumpsList
-// ): SmellyMethods[] {
-//   return methodGroupCopy.smellyMethods.filter(
-//     (method) => method !== leastParameterMethod
-//   );
-// }
+export function refactorMethods(
+  newClassInfo: NewClassInfo,
+  leastParameterMethod: SmellyMethods,
+  methodGroup: DataClumpsList,
+  project: Project
+) {
+  refactorSelectedMethod(newClassInfo, leastParameterMethod, project);
+  const methodGroupCopy = removeSelectedMethod(
+    leastParameterMethod,
+    methodGroup
+  );
+
+  for (const method of methodGroupCopy) {
+    refactorSelectedMethod(newClassInfo, method, project);
+    //console.log(method.methodInfo, method.classInfo.className);
+  }
+
+  project.saveSync();
+}
+
+function removeSelectedMethod(
+  leastParameterMethod: SmellyMethods,
+  methodGroupCopy: DataClumpsList
+): SmellyMethods[] {
+  return methodGroupCopy.smellyMethods.filter(
+    (method) => method !== leastParameterMethod
+  );
+}
 
 function refactorSelectedMethod(
   newClassInfo: NewClassInfo,
@@ -66,7 +82,7 @@ function refactorSelectedMethod(
   const sourceFile = project.addSourceFileAtPath(
     refactoredMethod.classInfo.filepath
   );
-
+  console.log("\n\n\nclassInfo : ", refactoredMethod.classInfo.filepath);
   importNewClass(sourceFile, newClassInfo);
 
   const classDeclaration = sourceFile.getClass(
@@ -144,8 +160,6 @@ function refactorMethodCallsUsingThis(
               refactoredMethod.methodInfo.methodName
             }(${updatedArgumentsList.join(", ")})`
           );
-
-          //console.log(`Replaced arguments in ${meth.getName()}`);
         }
       }
     });
@@ -157,6 +171,7 @@ function refactorMethodInOtherFile(
   refactoredMethod: SmellyMethods,
   callSourceFile: SourceFile
 ) {
+  importNewClass(callSourceFile, newClassInfo);
   const methodCallExpressions = callSourceFile.getDescendantsOfKind(
     SyntaxKind.CallExpression
   );
@@ -172,7 +187,6 @@ function refactorMethodInOtherFile(
       const instanceName = newExpression
         .getParentIfKind(SyntaxKind.VariableDeclaration)
         .getName();
-      console.log("------------ ", instanceName);
 
       UpdateMethodInOtherFile(
         newClassInfo,
@@ -180,7 +194,6 @@ function refactorMethodInOtherFile(
         methodCallExpressions,
         instanceName
       );
-      console.log(`Replaced arguments in ${callSourceFile.getFilePath()}`);
     }
   });
 }
