@@ -1,11 +1,12 @@
 import { Project } from "ts-morph";
 import { DataClumpsList, SmellyMethods } from "../utils/Interfaces";
 import {
-  refactorMethods,
-  refactorMethodsUsingKey,
+  refactorMethodsGroup,
+  refactoringAnchorKey,
 } from "./RefactoringSmellyMethods";
 import {
   exportNewFileData,
+  filterSmellyMethods,
   generateClassVariables,
   generateConstructor,
   generateGettersAndSetters,
@@ -30,8 +31,10 @@ export function createNewClassesUsingAnchorKey(
   outputPath: string,
   allKeys: string[]
 ) {
+  const userChoiceGroup = filterSmellyMethods(dataClumpsList, allKeys);
   const anchorSmellyMethod = getSmellyMethodWithKey(dataClumpsList, allKeys[0]);
-  createNewClass(anchorSmellyMethod, outputPath);
+  createNewClassForAnchorKey(anchorSmellyMethod, outputPath, userChoiceGroup);
+
   project.saveSync();
 }
 
@@ -43,9 +46,10 @@ export function createNewClassesFromKeyList(
   project.saveSync();
 }
 
-function createNewClass(
+function createNewClassForAnchorKey(
   leastParameterMethod: SmellyMethods,
-  outputPath: string
+  outputPath: string,
+  smellyMethodGroup: SmellyMethods[]
 ) {
   // const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
   let newClassName = getNewClassName(leastParameterMethod);
@@ -66,7 +70,9 @@ function createNewClass(
     leastParameterMethod.methodInfo.parameters,
     outputPath
   );
-  //refactorMethodsUsingKey(newClassInfo, leastParameterMethod, project);
+  for (const smellyMethod of smellyMethodGroup) {
+    refactoringAnchorKey(newClassInfo, project, smellyMethod);
+  }
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );
@@ -95,12 +101,7 @@ function createNewClassFromGroup(
     leastParameterMethod.methodInfo.parameters,
     outputPath
   );
-  // refactorMethods(
-  //   newClassInfo,
-  //   leastParameterMethod,
-  //   smellyMethodGroup,
-  //   project
-  // );
+  refactorMethodsGroup(newClassInfo, smellyMethodGroup, project);
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );
