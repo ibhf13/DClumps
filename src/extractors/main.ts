@@ -95,8 +95,6 @@ async function main() {
   // console.log("Create new Classes for Smelly Methods");
   // handleUserInput(dataClumpsList, outputPath);
 
-  //createNewClassesFromDataClumpsList(dataClumps, outputPath);
-
   //-------------------------------------------------------------------------
 
   codeAnalyzerProject2.addSourceFilesAtPaths(toAnalyzeProjectFolder);
@@ -118,11 +116,6 @@ async function main() {
   );
   console.log("Create new Classes for Smelly Fields");
   handleUserInputSmellyFields(dataClumpsListWithFields, outputPath);
-
-  // createNewClassesFromSmellyFieldDataClumpsList(
-  //   dataClumpsListWithFields,
-  //   outputPath
-  // );
 }
 
 // Run the main function
