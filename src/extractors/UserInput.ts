@@ -26,7 +26,7 @@ async function askAnchorDataClump(
     const answer = await readlineAsync("What is the anchor data clump? ");
     if (
       isValidPositiveNumber(answer) &&
-      keyExistsInSmellyMethods(dataClumpsList, answer)
+      keyExistsInDataClumpsList(dataClumpsList, answer)
     ) {
       return answer;
     }
@@ -48,7 +48,7 @@ async function askDataClumpsToRefactor(
     }
     if (
       isValidPositiveNumber(answer) &&
-      keyExistsInSmellyMethods(dataClumpsList, answer)
+      keyExistsInDataClumpsList(dataClumpsList, answer)
     ) {
       if (validAnswers.includes(answer)) {
         console.log(
@@ -71,7 +71,7 @@ function isValidPositiveNumber(num: string): boolean {
   return n > 0 && Number.isInteger(n);
 }
 
-function keyExistsInSmellyMethods(
+function keyExistsInDataClumpsList(
   dataClumpsList: DataClumpsList[],
   key: string
 ): boolean {
