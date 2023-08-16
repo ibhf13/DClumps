@@ -5,7 +5,10 @@ import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
 import { DetectSmellyFields } from "./DetectorSmellyFields";
-import { handleUserInput, handleUserInputSmellyFields } from "./UserInput";
+import {
+  handleUserInputSmellyMethods,
+  handleUserInputSmellyFields,
+} from "./UserInput";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
@@ -93,7 +96,7 @@ async function main() {
 
   // console.log("\n\n\nStart refactoring \n...");
   // console.log("Create new Classes for Smelly Methods");
-  // handleUserInput(dataClumpsList, outputPath);
+  // handleUserInputSmellyMethods(dataClumpsList, outputPath);
 
   //-------------------------------------------------------------------------
 

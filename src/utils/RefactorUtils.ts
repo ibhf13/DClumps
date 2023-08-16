@@ -6,10 +6,10 @@ export function toCamelCase(name: string) {
   return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
-export function getInstanceName(newClassInfo: NewClassInfo) {
-  const instance = `${newClassInfo.className
+export function getInstanceName(extractedClassInfo: NewClassInfo) {
+  const instance = `${extractedClassInfo.className
     .charAt(0)
-    .toLowerCase()}${newClassInfo.className.slice(1)}Instance`;
+    .toLowerCase()}${extractedClassInfo.className.slice(1)}Instance`;
   return instance;
 }
 
@@ -32,28 +32,37 @@ function determineImportPath(from: string, to: string) {
   return relativePath;
 }
 
-export function importNewClass(file: SourceFile, newClassInfo: NewClassInfo) {
+export function importNewClass(
+  file: SourceFile,
+  extractedClassInfo: NewClassInfo
+) {
   const filePath = file.getFilePath();
-  const correctPath = determineImportPath(filePath, newClassInfo.filepath);
+  const correctPath = determineImportPath(
+    filePath,
+    extractedClassInfo.filepath
+  );
 
   const existingImport = file.getImportDeclaration(
     (declaration) =>
       declaration.getModuleSpecifierValue() === correctPath &&
       declaration
         .getNamedImports()
-        .some((namedImport) => namedImport.getName() === newClassInfo.className)
+        .some(
+          (namedImport) =>
+            namedImport.getName() === extractedClassInfo.className
+        )
   );
 
   if (!existingImport) {
     file.addImportDeclaration({
       moduleSpecifier: correctPath,
-      namedImports: [newClassInfo.className],
+      namedImports: [extractedClassInfo.className],
     });
   }
 }
 
 export function getSharedFields(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   classToRefactor: ClassDeclaration
 ): string[] {
   const sharedFields: string[] = [];
@@ -67,7 +76,7 @@ export function getSharedFields(
       ])
   );
 
-  newClassInfo.parameters.forEach((param) => {
+  extractedClassInfo.parameters.forEach((param) => {
     if (currentClassFields.has(param.name)) {
       sharedFields.push(param.name);
     }

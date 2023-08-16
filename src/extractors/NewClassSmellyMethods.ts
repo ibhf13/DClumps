@@ -1,9 +1,6 @@
 import { Project } from "ts-morph";
 import { DataClumpsList, SmellyMethods } from "../utils/Interfaces";
-import {
-  refactorMethodsGroup,
-  refactoringAnchorKey,
-} from "./RefactoringSmellyMethods";
+import { refactorSmellyMethods } from "./RefactoringSmellyMethods";
 import {
   exportNewFileData,
   filterDataClumpsList,
@@ -65,9 +62,7 @@ function createNewClassUsingAnchorKey(
     anchorSmellyMethodClass.methodInfo.parameters,
     outputPath
   );
-  for (const smellyMethod of smellyMethodGroup) {
-    refactoringAnchorKey(newClassInfo, project, smellyMethod);
-  }
+  refactorSmellyMethods(newClassInfo, smellyMethodGroup, project);
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );
@@ -98,7 +93,7 @@ function createNewClassFromGroup(
     anchorSmellyMethodClass.methodInfo.parameters,
     outputPath
   );
-  refactorMethodsGroup(newClassInfo, smellyMethodGroup, project);
+  refactorSmellyMethods(newClassInfo, smellyMethodGroup, project);
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );

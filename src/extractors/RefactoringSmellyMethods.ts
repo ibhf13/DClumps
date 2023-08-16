@@ -23,36 +23,27 @@ import {
   toCamelCase,
 } from "../utils/RefactorUtils";
 
-export function refactoringAnchorKey(
-  newClassInfo: NewClassInfo,
-  project: Project,
-  refactoredMethod: SmellyMethods
-) {
-  refactorSelectedMethod(newClassInfo, refactoredMethod, project);
-  project.saveSync();
-}
-
-export function refactorMethodsGroup(
-  newClassInfo: NewClassInfo,
+export function refactorSmellyMethods(
+  extractedClassInfo: NewClassInfo,
   methodGroup: SmellyMethods[],
   project: Project
 ) {
   for (const method of methodGroup) {
-    refactorSelectedMethod(newClassInfo, method, project);
+    refactorSelectedMethod(extractedClassInfo, method, project);
   }
 
   project.saveSync();
 }
 
 function refactorSelectedMethod(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
   project: Project
 ) {
   const sourceFile = project.addSourceFileAtPath(
     refactoredMethod.classInfo.filepath
   );
-  importNewClass(sourceFile, newClassInfo);
+  importNewClass(sourceFile, extractedClassInfo);
 
   const classDeclaration = sourceFile.getClass(
     refactoredMethod.classInfo.className
@@ -63,28 +54,34 @@ function refactorSelectedMethod(
   );
   const allMethods = classDeclaration.getMethods();
 
-  const sharedParameters = updateMethodParameters(newClassInfo, method);
-  updateMethodBody(newClassInfo, method, sharedParameters);
+  const sharedParameters = updateMethodParameters(extractedClassInfo, method);
+  updateMethodBody(extractedClassInfo, method, sharedParameters);
 
-  refactorMethodCallsUsingThis(newClassInfo, refactoredMethod, allMethods);
-  refactorMethodInOtherFile(newClassInfo, refactoredMethod, sourceFile);
+  refactorMethodCallsUsingThis(
+    extractedClassInfo,
+    refactoredMethod,
+    allMethods
+  );
+  refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, sourceFile);
 
   const globalCalls: GlobalCalls[] =
     refactoredMethod.callsInfo.callsList.callsGlob;
   globalCalls.forEach((call) => {
     const callFile = project.addSourceFileAtPath(call.classInfo.filepath);
-    refactorMethodInOtherFile(newClassInfo, refactoredMethod, callFile);
+    refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, callFile);
   });
 
   project.saveSync();
 }
 
 function refactorMethodCallsUsingThis(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
   allMethods: MethodDeclaration[]
 ) {
-  const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
+  const newClassParamTypes = extractedClassInfo.parameters.map(
+    (param) => param.type
+  );
 
   allMethods.forEach((meth) => {
     const methodCallExpressions = meth.getDescendantsOfKind(
@@ -101,7 +98,7 @@ function refactorMethodCallsUsingThis(
 
         // Check for existing newClass instance in arguments
         const existingNewClassInstance = argumentsList.find((arg) =>
-          arg.getText().startsWith(`new ${newClassInfo.className}`)
+          arg.getText().startsWith(`new ${extractedClassInfo.className}`)
         );
 
         // Only process common and uncommon parameters if newClass instance doesn't already exist
@@ -120,7 +117,7 @@ function refactorMethodCallsUsingThis(
           otherArguments = argumentsList.map((arg) => arg.getText());
 
           const newArgument = `new ${
-            newClassInfo.className
+            extractedClassInfo.className
           }(${newClassArguments.join(", ")})`;
           const updatedArgumentsList = [newArgument, ...otherArguments];
 
@@ -136,11 +133,11 @@ function refactorMethodCallsUsingThis(
 }
 
 function refactorMethodInOtherFile(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
   callSourceFile: SourceFile
 ) {
-  importNewClass(callSourceFile, newClassInfo);
+  importNewClass(callSourceFile, extractedClassInfo);
   const methodCallExpressions = callSourceFile.getDescendantsOfKind(
     SyntaxKind.CallExpression
   );
@@ -158,7 +155,7 @@ function refactorMethodInOtherFile(
         .getName();
 
       UpdateMethodInOtherFile(
-        newClassInfo,
+        extractedClassInfo,
         refactoredMethod,
         methodCallExpressions,
         instanceName
@@ -168,12 +165,14 @@ function refactorMethodInOtherFile(
 }
 
 function UpdateMethodInOtherFile(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   refactoredMethod: SmellyMethods,
   methodCallExpressions: CallExpression[],
   instanceName: string
 ) {
-  const newClassParamTypes = newClassInfo.parameters.map((param) => param.type);
+  const newClassParamTypes = extractedClassInfo.parameters.map(
+    (param) => param.type
+  );
 
   methodCallExpressions.forEach((callExpression) => {
     const calledMethodName = callExpression.getExpression().getText();
@@ -187,7 +186,7 @@ function UpdateMethodInOtherFile(
       let otherArguments = [];
 
       const existingNewClassInstance = argumentsList.find((arg) =>
-        arg.getText().startsWith(`new ${newClassInfo.className}`)
+        arg.getText().startsWith(`new ${extractedClassInfo.className}`)
       );
 
       if (!existingNewClassInstance) {
@@ -213,7 +212,7 @@ function UpdateMethodInOtherFile(
         otherArguments = argumentsList.map((arg) => arg.getText());
 
         const newArgument = `new ${
-          newClassInfo.className
+          extractedClassInfo.className
         }(${newClassArguments.join(", ")})`;
         const updatedArgumentsList = [newArgument, ...otherArguments];
 
@@ -228,15 +227,15 @@ function UpdateMethodInOtherFile(
 }
 
 function updateMethodParameters(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   method: MethodDeclaration
 ) {
   const methodParameters = method.getParameters();
   const sharedParameters = methodParameters.filter((param) =>
-    parameterExists(param.getName(), newClassInfo.parameters)
+    parameterExists(param.getName(), extractedClassInfo.parameters)
   );
 
-  const instanceName = getInstanceName(newClassInfo);
+  const instanceName = getInstanceName(extractedClassInfo);
 
   // Check if the parameter is already there
   const alreadyHasInstance = methodParameters.some(
@@ -247,39 +246,39 @@ function updateMethodParameters(
   if (!alreadyHasInstance) {
     method.insertParameter(0, {
       name: instanceName,
-      type: newClassInfo.className,
+      type: extractedClassInfo.className,
     });
   }
 
   return sharedParameters;
 }
 
-function processExpression(expression, instance, newClassInfo) {
+function processExpression(expression, instance, extractedClassInfo) {
   const left = expression.getLeft();
   const right = expression.getRight();
   let leftText = left.getText();
   let rightText = right.getText();
 
   if (right instanceof BinaryExpression) {
-    rightText = processExpression(right, instance, newClassInfo);
+    rightText = processExpression(right, instance, extractedClassInfo);
   }
 
   const assignment =
     expression.getOperatorToken().getKind() === SyntaxKind.EqualsToken;
   if (assignment) {
-    if (parameterExists(leftText, newClassInfo.parameters)) {
+    if (parameterExists(leftText, extractedClassInfo.parameters)) {
       leftText = `${instance}.set${toCamelCase(leftText)}`;
     }
 
-    if (parameterExists(rightText, newClassInfo.parameters)) {
+    if (parameterExists(rightText, extractedClassInfo.parameters)) {
       rightText = `${instance}.get${toCamelCase(rightText)}()`;
     }
     return `${leftText}(${rightText})`;
   } else {
-    if (parameterExists(leftText, newClassInfo.parameters)) {
+    if (parameterExists(leftText, extractedClassInfo.parameters)) {
       leftText = `${instance}.get${toCamelCase(leftText)}()`;
     }
-    if (parameterExists(rightText, newClassInfo.parameters)) {
+    if (parameterExists(rightText, extractedClassInfo.parameters)) {
       rightText = `${instance}.get${toCamelCase(rightText)}()`;
     }
     return `${leftText} ${expression
@@ -289,11 +288,11 @@ function processExpression(expression, instance, newClassInfo) {
 }
 
 function updateMethodBody(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   method: MethodDeclaration,
   sharedParameters: ParameterDeclaration[]
 ) {
-  const instance = getInstanceName(newClassInfo);
+  const instance = getInstanceName(extractedClassInfo);
 
   // 1. Collect nodes
   const expressionsToReplace: BinaryExpression[] = [];
@@ -311,24 +310,24 @@ function updateMethodBody(
     const newExpression = processExpression(
       binaryExpression,
       instance,
-      newClassInfo
+      extractedClassInfo
     );
     binaryExpression.replaceWithText(newExpression);
   });
 
   sharedParameters.forEach((param) => param.remove());
-  updateMethodWithGetter(newClassInfo, method);
+  updateMethodWithGetter(extractedClassInfo, method);
 }
 //cant put type for method because of the finding the right statement wont work
 function updateMethodWithGetter(
-  newClassInfo: NewClassInfo,
+  extractedClassInfo: NewClassInfo,
   method: MethodDeclaration
 ) {
-  const instance = getInstanceName(newClassInfo);
+  const instance = getInstanceName(extractedClassInfo);
 
   method.getDescendantsOfKind(SyntaxKind.Identifier).forEach((identifier) => {
     const paramName = identifier.getText();
-    if (parameterExists(paramName, newClassInfo.parameters)) {
+    if (parameterExists(paramName, extractedClassInfo.parameters)) {
       const getterExpression = `${instance}.get${toCamelCase(paramName)}()`;
       identifier.replaceWithText(getterExpression);
     }

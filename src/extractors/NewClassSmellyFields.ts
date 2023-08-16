@@ -64,12 +64,7 @@ function createNewClassUsingAnchorKey(
   );
   project.saveSync();
 
-  // refactorSmellyFields(
-  //   newClassInfo,
-  //   leastParameterFieldGroup,
-  //   smellyFieldGroup,
-  //   project
-  // );
+  refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
 
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
@@ -77,11 +72,11 @@ function createNewClassUsingAnchorKey(
 }
 
 function createNewClassUsingOptimum(
-  smellyFieldGroup: SmellyFields[],
+  smellyFieldsGroup: SmellyFields[],
   outputPath: string
 ) {
   const leastParameterFieldGroup =
-    getFieldGroupWithLeastParameters(smellyFieldGroup);
+    getFieldGroupWithLeastParameters(smellyFieldsGroup);
   let newClassName = getNewClassNameFromFieldGroup(leastParameterFieldGroup);
   const fileName = generateUniqueFileName(
     leastParameterFieldGroup.classInfo.className + "_" + newClassName,
@@ -103,12 +98,7 @@ function createNewClassUsingOptimum(
   );
   project.saveSync();
 
-  // refactorSmellyFields(
-  //   newClassInfo,
-  //   leastParameterFieldGroup,
-  //   smellyFieldGroup,
-  //   project
-  // );
+  refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
 
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`

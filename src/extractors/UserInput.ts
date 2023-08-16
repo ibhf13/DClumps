@@ -14,7 +14,6 @@ import {
   createNewClassesFromKeyListForSmellyFields,
   createNewClassesUsingAnchorKeyForSmellyFields,
 } from "./NewClassSmellyFields";
-import { type } from "os";
 
 async function readlineAsync(prompt: string): Promise<string> {
   const rl = readline.createInterface({
@@ -40,12 +39,17 @@ async function askAnchorDataClump(
     ) {
       return answer;
     }
-    console.log("Invalid input. Please enter a valid key from smellyMethods.");
+    console.log();
+    console.log(
+      `Invalid input for '${answer}'. Please enter a valid key from Data Clumps list.`
+    );
   }
 }
 
 async function askDataClumpsToRefactor(
-  dataClumpsList: DataClumpsList[]
+  dataClumpsList: DataClumpsList[],
+  anchorDataClump: string,
+  type: "smellyMethods" | "smellyFields"
 ): Promise<string[]> {
   let validAnswers: string[] = [];
 
@@ -58,9 +62,11 @@ async function askDataClumpsToRefactor(
     }
     if (
       isValidPositiveNumber(answer) &&
-      keyExistsInDataClumpsList(dataClumpsList, answer, "smellyFields")
+      keyExistsInDataClumpsList(dataClumpsList, answer, type) &&
+      keysInSameGroup(dataClumpsList, anchorDataClump, [answer], type)
     ) {
       if (validAnswers.includes(answer)) {
+        console.log();
         console.log(
           `'${answer}' has already been added. Enter another value or type 'end' to stop.`
         );
@@ -68,8 +74,10 @@ async function askDataClumpsToRefactor(
       }
       validAnswers.push(answer);
     } else {
+      console.log();
       console.log(
-        `Invalid input for '${answer}'. Please enter a valid key from smellyMethods.`
+        `Invalid input for '${answer}' or not in the same Group. 
+        \nPlease enter a valid key from Data Clumps List and make sure it belong to the same group.\n`
       );
     }
   }
@@ -151,6 +159,7 @@ async function wantsOptimumSolution(): Promise<boolean> {
     console.log("Invalid input. Please answer with 'y' or 'n'.");
   }
 }
+
 export function getDataClumpsTypeWithKey(
   dataClumpsList: DataClumpsList[],
   key: string,
@@ -169,7 +178,7 @@ export function getDataClumpsTypeWithKey(
   }
 }
 
-export async function handleUserInput(
+export async function handleUserInputSmellyMethods(
   dataClumpsList: DataClumpsList[],
   outputPath: string
 ) {
@@ -177,7 +186,11 @@ export async function handleUserInput(
 
   const anchorDataClump = await askAnchorDataClump(dataClumps);
 
-  const refactoredKeys = await askDataClumpsToRefactor(dataClumps);
+  const refactoredKeys = await askDataClumpsToRefactor(
+    dataClumps,
+    anchorDataClump,
+    "smellyMethods"
+  );
 
   const allInSameGroup = keysInSameGroup(
     dataClumps,
@@ -219,7 +232,11 @@ export async function handleUserInputSmellyFields(
 
   const anchorDataClump = await askAnchorDataClump(dataClumps);
 
-  const refactoredKeys = await askDataClumpsToRefactor(dataClumps);
+  const refactoredKeys = await askDataClumpsToRefactor(
+    dataClumps,
+    anchorDataClump,
+    "smellyFields"
+  );
 
   const allInSameGroup = keysInSameGroup(
     dataClumps,
@@ -230,7 +247,9 @@ export async function handleUserInputSmellyFields(
 
   const useOptimum: boolean = await wantsOptimumSolution();
 
-  if (allInSameGroup) {
+  if (!allInSameGroup) {
+    console.log("The keys are not in the same group");
+  } else {
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
     const userChoiceGroup = filterDataClumpsList(
       dataClumps,
@@ -247,7 +266,5 @@ export async function handleUserInputSmellyFields(
         userChoiceGroup
       );
     }
-  } else {
-    console.log("The keys are not in the same group");
   }
 }

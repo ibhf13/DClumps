@@ -33,30 +33,14 @@ import {
 
 export function refactorSmellyFields(
   extractedClassInfo: NewClassInfo,
-  leastParameterField: SmellyFields,
-  smellyFieldGroup: DataClumpsList,
+  smellyFieldGroup: SmellyFields[],
   project: Project
 ) {
-  refactorSelectedClassFields(extractedClassInfo, leastParameterField, project);
-  const fieldGroupCopy = removeSelectedField(
-    leastParameterField,
-    smellyFieldGroup
-  );
-
-  for (const field of fieldGroupCopy) {
+  for (const field of smellyFieldGroup) {
     refactorSelectedClassFields(extractedClassInfo, field, project);
   }
 
   project.saveSync();
-}
-//To be extracted
-function removeSelectedField(
-  smellyFieldGroup: SmellyFields,
-  methodGroupCopy: DataClumpsList
-): SmellyFields[] {
-  return methodGroupCopy.smellyFields.filter(
-    (field) => field !== smellyFieldGroup
-  );
 }
 
 function refactorSelectedClassFields(
@@ -401,6 +385,7 @@ function findInstancesOfRefactoredClass(
 ) {
   const sourceFile = project.addSourceFileAtPath(filepath);
   const className = refactoredClass.getName();
+  importNewClass(sourceFile, extractedClassInfo);
 
   refactorNodes(
     sourceFile.getDescendantsOfKind(SyntaxKind.NewExpression),
