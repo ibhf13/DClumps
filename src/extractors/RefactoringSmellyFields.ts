@@ -54,7 +54,7 @@ function removeSelectedField(
   smellyFieldGroup: SmellyFields,
   methodGroupCopy: DataClumpsList
 ): SmellyFields[] {
-  return methodGroupCopy.smellyFieldGroup.filter(
+  return methodGroupCopy.smellyFields.filter(
     (field) => field !== smellyFieldGroup
   );
 }

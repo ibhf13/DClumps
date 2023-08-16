@@ -55,7 +55,7 @@ export interface SmellyFunction {
 }
 
 export interface SmellyFields {
-  key: number;
+  key: string;
   fieldInfo: ParameterInfo[];
   classInfo: ClassInfo;
   callsInfo?: CallsInfo;
@@ -68,7 +68,7 @@ export interface DataClumpsList {
   };
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
-  smellyFieldGroup?: SmellyFields[];
+  smellyFields?: SmellyFields[];
 }
 
 export type DataClumpsType = SmellyMethods | SmellyFields;

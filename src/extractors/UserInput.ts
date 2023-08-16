@@ -2,7 +2,12 @@ import {
   createNewClassesFromKeyList,
   createNewClassesUsingAnchorKey,
 } from "./NewClassSmellyMethods";
-import { DataClumpsList } from "../utils/Interfaces";
+import {
+  DataClumpsList,
+  DataClumpsType,
+  SmellyFields,
+  SmellyMethods,
+} from "../utils/Interfaces";
 import * as readline from "readline";
 import { filterSmellyMethods, removeMetaInfo } from "../utils/newClassUtils";
 
@@ -121,8 +126,58 @@ async function wantsOptimumSolution(): Promise<boolean> {
     console.log("Invalid input. Please answer with 'y' or 'n'.");
   }
 }
+export function getSmellyMethodWithKey(
+  dataClumpsList: DataClumpsList[],
+  key: string
+): SmellyMethods {
+  const foundMethod = dataClumpsList
+    .flatMap((data) => data.smellyMethods || [])
+    .find((method) => method.key === key);
+  return foundMethod || null;
+}
+
+export function getSmellyFieldsWithKey(
+  dataClumpsList: DataClumpsList[],
+  key: string
+): SmellyFields {
+  const foundFields = dataClumpsList
+    .flatMap((data) => data.smellyFields || [])
+    .find((smellyField) => smellyField.key === key);
+  return foundFields || null;
+}
 
 export async function handleUserInput(
+  dataClumpsList: DataClumpsList[],
+  outputPath: string
+) {
+  const dataClumps = removeMetaInfo(dataClumpsList);
+
+  const anchorDataClump = await askAnchorDataClump(dataClumps);
+
+  const refactoredKeys = await askDataClumpsToRefactor(dataClumps);
+
+  const allInSameGroup = keysInSameGroup(
+    dataClumps,
+    anchorDataClump,
+    refactoredKeys
+  );
+
+  const useOptimum: boolean = await wantsOptimumSolution();
+
+  if (allInSameGroup) {
+    const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
+    if (useOptimum) {
+      const userChoiceGroup = filterSmellyMethods(dataClumps, allKeys);
+      createNewClassesFromKeyList(userChoiceGroup, outputPath);
+    } else {
+      createNewClassesUsingAnchorKey(dataClumps, outputPath, allKeys);
+    }
+  } else {
+    console.log("The keys are not in the same group");
+  }
+}
+
+export async function handleUserInputSmellyFields(
   dataClumpsList: DataClumpsList[],
   outputPath: string
 ) {

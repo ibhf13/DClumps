@@ -13,18 +13,9 @@ import {
   generateUniqueFileName,
   initializeNewClass,
 } from "../utils/newClassUtils";
+import { getSmellyMethodWithKey } from "./UserInput";
 
 const project = new Project();
-
-function getSmellyMethodWithKey(
-  dataClumpsList: DataClumpsList[],
-  key: string
-): SmellyMethods {
-  const foundMethod = dataClumpsList
-    .flatMap((data) => data.smellyMethods || [])
-    .find((method) => method.key === key);
-  return foundMethod || null;
-}
 
 export function createNewClassesUsingAnchorKey(
   dataClumpsList: DataClumpsList[],

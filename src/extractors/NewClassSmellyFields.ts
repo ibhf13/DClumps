@@ -63,7 +63,7 @@ function getFieldGroupWithLeastParameters(
   dataClumpsList: DataClumpsList
 ): SmellyFields {
   // Assuming smellyFieldGroup is not undefined
-  return dataClumpsList.smellyFieldGroup!.reduce(
+  return dataClumpsList.smellyFields!.reduce(
     (leastFieldGroup, currentFieldGroup) => {
       return currentFieldGroup.fieldInfo.length <
         leastFieldGroup.fieldInfo.length

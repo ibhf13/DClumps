@@ -21,7 +21,7 @@ function addMetaInfo() {
   const metaInfo = {
     numberOfSmellyFieldGroups: Data_Clumps_List.length,
     totalNumberOfDataClumps: Data_Clumps_List.reduce(
-      (total, clump) => total + (clump.smellyFieldGroup?.length || 0),
+      (total, clump) => total + (clump.smellyFields?.length || 0),
       0
     ),
   };
@@ -52,7 +52,7 @@ export function DetectSmellyFields(
     });
     if (smellyFieldGroup.length > 1) {
       Data_Clumps_List.push({
-        smellyFieldGroup: [...smellyFieldGroup],
+        smellyFields: [...smellyFieldGroup],
       });
       smellyFieldGroup = [];
     }
@@ -148,7 +148,7 @@ function findMatchingFields(
 
 function isFieldInDataClumpsList(filepath: string, className: string): boolean {
   return Data_Clumps_List.some((dataClump) =>
-    dataClump.smellyFieldGroup.some(
+    dataClump.smellyFields.some(
       (smellyField) =>
         smellyField.classInfo.className === className &&
         smellyField.classInfo.filepath === filepath
@@ -201,7 +201,7 @@ function storeFieldInfo(
   };
 
   const smellyField: SmellyFields = {
-    key: 0,
+    key: "0",
     fieldInfo: fieldDetails,
     classInfo: classDetails,
     callsInfo: {
