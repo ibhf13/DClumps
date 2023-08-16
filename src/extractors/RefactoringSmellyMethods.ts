@@ -295,23 +295,26 @@ function updateMethodBody(
 ) {
   const instance = getInstanceName(newClassInfo);
 
-  const expressions = method.getDescendantsOfKind(SyntaxKind.BinaryExpression);
+  // 1. Collect nodes
+  const expressionsToReplace: BinaryExpression[] = [];
   method
     .getDescendantsOfKind(SyntaxKind.ExpressionStatement)
     .forEach((expressionStatement) => {
       const expression = expressionStatement.getExpression();
-
       if (expression instanceof BinaryExpression) {
-        expressions.reverse().forEach((binaryExpression) => {
-          const newExpression = processExpression(
-            binaryExpression,
-            instance,
-            newClassInfo
-          );
-          binaryExpression.replaceWithText(newExpression);
-        });
+        expressionsToReplace.push(expression);
       }
     });
+
+  // 2. Replace them
+  expressionsToReplace.forEach((binaryExpression) => {
+    const newExpression = processExpression(
+      binaryExpression,
+      instance,
+      newClassInfo
+    );
+    binaryExpression.replaceWithText(newExpression);
+  });
 
   sharedParameters.forEach((param) => param.remove());
   updateMethodWithGetter(newClassInfo, method);

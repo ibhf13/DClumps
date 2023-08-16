@@ -20,6 +20,7 @@ class ParameterTest3 {
 
     //3. Call Expresssion
     paraX.toString();
+    paraString.valueOf() === paraX.toString();
     paraBoolean = paraString.valueOf() === paraX.toString();
   }
 
