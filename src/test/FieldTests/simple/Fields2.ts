@@ -14,7 +14,7 @@ class Fields2 {
     //------------------------------------------------------
     //------------------------------------------------------
 
-    let fields3Instance = new Fields3(10, "TESTING", true, objInClassFields2);
+    let fields3Instance = new Fields3(10, "TESTING", true);
     // non binary statements
     if (fields3Instance.fieldsY === fields3Instance.fieldsY + 9) {
       // non binary statements

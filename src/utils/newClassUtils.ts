@@ -5,6 +5,7 @@ import {
   DataClumpsType,
   DataClumpsList,
   SmellyMethods,
+  SmellyFields,
 } from "./Interfaces";
 import { existsSync } from "fs";
 
@@ -151,27 +152,22 @@ export function removeMetaInfo(
   return dataClumpsList;
 }
 
-export function filterSmellyMethods(
+export function filterDataClumpsList(
   dataClumpsList: DataClumpsList[],
-  keyList: string[]
-): SmellyMethods[] {
-  // Initialize the result array.
-  const result: SmellyMethods[] = [];
-
-  // Iterate over each data clump.
-  for (const dataClump of dataClumpsList) {
-    if (dataClump.smellyMethods) {
-      // Filter the smelly methods based on the key list.
-      const filteredMethods = dataClump.smellyMethods.filter((smellyMethod) =>
-        keyList.includes(smellyMethod.key)
-      );
-
-      // Push the filtered methods to the result array.
-      result.push(...filteredMethods);
-    }
+  keyList: string[],
+  type: "smellyMethods" | "smellyFields"
+): DataClumpsType[] {
+  if (type === "smellyMethods") {
+    return dataClumpsList.flatMap((dataClump) =>
+      (dataClump?.smellyMethods).filter((method) =>
+        keyList.includes(method.key)
+      )
+    );
+  } else {
+    return dataClumpsList.flatMap((dataClump) =>
+      (dataClump?.smellyFields).filter((field) => keyList.includes(field.key))
+    );
   }
-
-  return result;
 }
 
 export function filterBySmellyKeys(

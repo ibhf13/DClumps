@@ -5,8 +5,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
 import { DetectSmellyFields } from "./DetectorSmellyFields";
-import { createNewClassesFromSmellyFieldDataClumpsList } from "./NewClassSmellyFields";
-import { handleUserInput } from "./UserInput";
+import { handleUserInput, handleUserInputSmellyFields } from "./UserInput";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
@@ -74,7 +73,7 @@ async function main() {
   // const dataclumpsFilepath = "./src/output/jsonDclumps/Data_Clumps_List.json";
   // const DataClumpsListFromFile = getDataClumpsList(dataclumpsFilepath);
 
-  // Analyze the project files for data clumps
+  // // Analyze the project files for data clumps
   // codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
   // let dataClumpsList = analyzeProjectFiles(
   //   codeAnalyzerProject,
@@ -117,7 +116,8 @@ async function main() {
     "./src/output/jsonDclumps/Data_Clumps_List_With_Fields.json",
     JSON.stringify(dataClumpsListWithFields, null, 2)
   );
-  // console.log("Create new Classes for Smelly Fields");
+  console.log("Create new Classes for Smelly Fields");
+  handleUserInputSmellyFields(dataClumpsListWithFields, outputPath);
 
   // createNewClassesFromSmellyFieldDataClumpsList(
   //   dataClumpsListWithFields,

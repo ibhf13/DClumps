@@ -67,9 +67,9 @@ export function DetectSmellyFields(
 
   return Data_Clumps_List;
 }
-function setSmellyFieldKeys(Data_Clumps_List) {
+function setSmellyFieldKeys(Data_Clumps_List: DataClumpsList[]) {
   Data_Clumps_List.forEach((dataClump, groupIndex) => {
-    dataClump.smellyFieldGroup?.forEach((smellyField, fieldIndex) => {
+    dataClump.smellyFields?.forEach((smellyField, fieldIndex) => {
       smellyField.key = `${groupIndex}${fieldIndex + 1}`;
     });
   });

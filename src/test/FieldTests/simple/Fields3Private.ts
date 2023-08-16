@@ -1,9 +1,9 @@
 import { FieldsWithConstructor } from "./FieldsWithConstructor";
 
-export class Fields3 {
-  fieldsY: number;
-  fieldsString: string;
-  fieldBoolean1: boolean = true;
+export class Fields3Private {
+  private fieldsY: number;
+  private fieldsString: string;
+  private fieldBoolean1: boolean = true;
 
   constructor(fieldsY, fieldsString, fieldBoolean1) {
     //

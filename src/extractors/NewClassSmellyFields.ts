@@ -2,6 +2,7 @@ import { Project } from "ts-morph";
 import { DataClumpsList, SmellyFields } from "../utils/Interfaces";
 import {
   exportNewFileData,
+  filterBySmellyKeys,
   generateClassVariables,
   generateConstructor,
   generateGettersAndSetters,
@@ -10,20 +11,75 @@ import {
 } from "../utils/newClassUtils";
 import { refactorSmellyFields } from "./RefactoringSmellyFields";
 import { toCamelCase } from "../utils/RefactorUtils";
+import { getDataClumpsTypeWithKey } from "./UserInput";
 
 const project = new Project();
-
-export function createNewClassesFromSmellyFieldDataClumpsList(
+export function createNewClassesUsingAnchorKeyForSmellyFields(
   dataClumpsList: DataClumpsList[],
-  outputPath: string
+  outputPath: string,
+  key: string,
+  userChoiceGroup: SmellyFields[]
 ) {
-  dataClumpsList.forEach((smellyFieldGroup) => {
-    createNewClass(smellyFieldGroup, outputPath);
-  });
+  const anchorSmellyMethod = getDataClumpsTypeWithKey(
+    dataClumpsList,
+    key,
+    "smellyFields"
+  ) as SmellyFields;
+  createNewClassUsingAnchorKey(anchorSmellyMethod, userChoiceGroup, outputPath);
+
   project.saveSync();
 }
 
-function createNewClass(smellyFieldGroup, outputPath: string) {
+export function createNewClassesFromKeyListForSmellyFields(
+  smellyFieldGroup: SmellyFields[],
+  outputPath: string
+) {
+  createNewClassUsingOptimum(smellyFieldGroup, outputPath);
+  project.saveSync();
+}
+
+function createNewClassUsingAnchorKey(
+  anchorFieldsClass: SmellyFields,
+  smellyFieldsGroup: SmellyFields[],
+  outputPath: string
+) {
+  let newClassName = getNewClassNameFromFieldGroup(anchorFieldsClass);
+  const fileName = generateUniqueFileName(
+    anchorFieldsClass.classInfo.className + "_" + newClassName,
+    outputPath
+  );
+
+  const newClassDeclaration = createAndGetNewClass(
+    newClassName,
+    fileName,
+    anchorFieldsClass,
+    outputPath
+  );
+
+  const newClassInfo = exportNewFileData(
+    newClassDeclaration,
+    fileName,
+    anchorFieldsClass.fieldInfo,
+    outputPath
+  );
+  project.saveSync();
+
+  // refactorSmellyFields(
+  //   newClassInfo,
+  //   leastParameterFieldGroup,
+  //   smellyFieldGroup,
+  //   project
+  // );
+
+  console.log(
+    `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
+  );
+}
+
+function createNewClassUsingOptimum(
+  smellyFieldGroup: SmellyFields[],
+  outputPath: string
+) {
   const leastParameterFieldGroup =
     getFieldGroupWithLeastParameters(smellyFieldGroup);
   let newClassName = getNewClassNameFromFieldGroup(leastParameterFieldGroup);
@@ -47,12 +103,12 @@ function createNewClass(smellyFieldGroup, outputPath: string) {
   );
   project.saveSync();
 
-  refactorSmellyFields(
-    newClassInfo,
-    leastParameterFieldGroup,
-    smellyFieldGroup,
-    project
-  );
+  // refactorSmellyFields(
+  //   newClassInfo,
+  //   leastParameterFieldGroup,
+  //   smellyFieldGroup,
+  //   project
+  // );
 
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
@@ -60,17 +116,13 @@ function createNewClass(smellyFieldGroup, outputPath: string) {
 }
 
 function getFieldGroupWithLeastParameters(
-  dataClumpsList: DataClumpsList
+  smellyFields: SmellyFields[]
 ): SmellyFields {
-  // Assuming smellyFieldGroup is not undefined
-  return dataClumpsList.smellyFields!.reduce(
-    (leastFieldGroup, currentFieldGroup) => {
-      return currentFieldGroup.fieldInfo.length <
-        leastFieldGroup.fieldInfo.length
-        ? currentFieldGroup
-        : leastFieldGroup;
-    }
-  );
+  return smellyFields!.reduce((leastFieldGroup, currentFieldGroup) => {
+    return currentFieldGroup.fieldInfo.length < leastFieldGroup.fieldInfo.length
+      ? currentFieldGroup
+      : leastFieldGroup;
+  });
 }
 //TODO: maybe can be extracted
 function getNewClassNameFromFieldGroup(smellyFieldGroup: SmellyFields) {

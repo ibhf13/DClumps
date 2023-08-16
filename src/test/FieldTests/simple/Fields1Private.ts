@@ -3,25 +3,12 @@ import { FieldsWithConstructor } from "./FieldsWithConstructor";
 class Field1 {
   private fieldsY: number;
   private fieldsString: string;
-
   private fieldBoolean1: boolean = true;
-  //4.Fields Object as Classes Field
-  //fall instance in class variable
-  private obj3: FieldsWithConstructor;
-  //
-  //falls 4  in constructor
-  constructor(
-    fieldsY: number,
-    fieldsString: string,
-    fieldBoolean1: boolean,
-    obj3: FieldsWithConstructor
-  ) {
-    //
-    //fall usage in constructor body
-    this.obj3 = obj3;
-    this.fieldsY = obj3.fieldsY;
-    this.fieldsString = obj3.fieldsString;
-    this.fieldBoolean1 = obj3.fieldBoolean1;
+
+  constructor(fieldsY: number, fieldsString: string, fieldBoolean1: boolean) {
+    this.fieldsY = fieldsY;
+    this.fieldsString = fieldsString;
+    this.fieldBoolean1 = fieldBoolean1;
   }
 
   methodTest(obj5: FieldsWithConstructor): void {
@@ -79,13 +66,12 @@ class Field1 {
     //----------------------------------
     //4.Fields Object as Classes Field
     // Binary Expression + CallExpression + PropertyAccessExpression
-    this.obj3.fieldBoolean1 =
-      this.obj3.fieldsY.toString() === this.obj3.fieldsString;
+    this.fieldBoolean1 = this.fieldsY.toString() === this.fieldsString;
     //PropertyAccessExpression
-    this.obj3.fieldsY;
-    this.obj3.fieldsY.toString() === this.obj3.fieldsString.valueOf();
+    this.fieldsY;
+    this.fieldsY.toString() === this.fieldsString.valueOf();
 
     //CallExpression
-    this.obj3.fieldsY.toString();
+    this.fieldsY.toString();
   }
 }

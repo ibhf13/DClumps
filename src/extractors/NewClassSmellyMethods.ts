@@ -6,25 +6,29 @@ import {
 } from "./RefactoringSmellyMethods";
 import {
   exportNewFileData,
-  filterSmellyMethods,
+  filterDataClumpsList,
   generateClassVariables,
   generateConstructor,
   generateGettersAndSetters,
   generateUniqueFileName,
   initializeNewClass,
 } from "../utils/newClassUtils";
-import { getSmellyMethodWithKey } from "./UserInput";
+import { getDataClumpsTypeWithKey } from "./UserInput";
 
 const project = new Project();
 
-export function createNewClassesUsingAnchorKey(
+export function createNewClassesUsingAnchorKeyForSmellyMethods(
   dataClumpsList: DataClumpsList[],
   outputPath: string,
-  allKeys: string[]
+  key: string,
+  userChoiceGroup: SmellyMethods[]
 ) {
-  const userChoiceGroup = filterSmellyMethods(dataClumpsList, allKeys);
-  const anchorSmellyMethod = getSmellyMethodWithKey(dataClumpsList, allKeys[0]);
-  createNewClassForAnchorKey(anchorSmellyMethod, outputPath, userChoiceGroup);
+  const anchorSmellyMethod = getDataClumpsTypeWithKey(
+    dataClumpsList,
+    key,
+    "smellyMethods"
+  ) as SmellyMethods;
+  createNewClassUsingAnchorKey(anchorSmellyMethod, outputPath, userChoiceGroup);
 
   project.saveSync();
 }
@@ -37,28 +41,28 @@ export function createNewClassesFromKeyList(
   project.saveSync();
 }
 
-function createNewClassForAnchorKey(
-  leastParameterMethod: SmellyMethods,
+function createNewClassUsingAnchorKey(
+  anchorSmellyMethodClass: SmellyMethods,
   outputPath: string,
   smellyMethodGroup: SmellyMethods[]
 ) {
   // const leastParameterMethod = getMethodWithLeastParameters(smellymethodGroup);
-  let newClassName = getNewClassName(leastParameterMethod);
+  let newClassName = getNewClassName(anchorSmellyMethodClass);
   const fileName = generateUniqueFileName(
-    leastParameterMethod.classInfo.className + "_" + newClassName,
+    anchorSmellyMethodClass.classInfo.className + "_" + newClassName,
     outputPath
   );
 
   const newClassDeclaration = createAndGetNewClass(
     newClassName,
     fileName,
-    leastParameterMethod,
+    anchorSmellyMethodClass,
     outputPath
   );
   const newClassInfo = exportNewFileData(
     newClassDeclaration,
     fileName,
-    leastParameterMethod.methodInfo.parameters,
+    anchorSmellyMethodClass.methodInfo.parameters,
     outputPath
   );
   for (const smellyMethod of smellyMethodGroup) {
@@ -73,23 +77,25 @@ function createNewClassFromGroup(
   smellyMethodGroup: SmellyMethods[],
   outputPath: string
 ) {
-  const leastParameterMethod = getMethodWithLeastParameters(smellyMethodGroup);
-  let newClassName = getNewClassName(leastParameterMethod);
+  const anchorSmellyMethodClass =
+    getMethodWithLeastParameters(smellyMethodGroup);
+
+  let newClassName = getNewClassName(anchorSmellyMethodClass);
   const fileName = generateUniqueFileName(
-    leastParameterMethod.classInfo.className + "_" + newClassName,
+    anchorSmellyMethodClass.classInfo.className + "_" + newClassName,
     outputPath
   );
 
   const newClassDeclaration = createAndGetNewClass(
     newClassName,
     fileName,
-    leastParameterMethod,
+    anchorSmellyMethodClass,
     outputPath
   );
   const newClassInfo = exportNewFileData(
     newClassDeclaration,
     fileName,
-    leastParameterMethod.methodInfo.parameters,
+    anchorSmellyMethodClass.methodInfo.parameters,
     outputPath
   );
   refactorMethodsGroup(newClassInfo, smellyMethodGroup, project);
