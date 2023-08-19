@@ -516,8 +516,8 @@ function analyzeSmellyMethodReferences(
 ) {
   const references = method.findReferencesAsNodes();
 
-  const callsInSameClass = getSmellyMethodGlobalCalls(references, clazz);
-  const globalCalls = countSmellyMethodCallsInSameClass(references, clazz);
+  const callsInSameClass = countSmellyMethodCallsInSameClass(references, clazz);
+  const globalCalls = getSmellyMethodGlobalCalls(references, clazz);
 
   smellyMethod.callsInfo.callsList = {
     callsInSame: callsInSameClass,
