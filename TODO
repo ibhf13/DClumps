@@ -1,36 +1,21 @@
-   Naming 
-     refactoredClassInstanceName , refactoredClass ,
-      let instance = new className(arg1,arg2,arg3,arg4) 
-     the Parameter will be updated with new(extractedClassName"newClassInfo" or extractedClassInstanceName) 
-     this happen inside of the UpdateCallsInClassName
-
-2. code Optimierung 
-- store all types in Data_Clumps_List 
-- apply SOC ,DRY , SOLID
-
-
-3.GUI: Refactoring up to user (the method choice)
-   for the user choice will be new class created and then refactor it first then the rest of the group
-   else should be the least parameter method
-
-4. handle inheritance (tell the user if the to be refactored DataClumps class is sub class or not)
-check if the class is a parent class? then it need to update all children classes too
-5. handle interfaces the same
-
-6.JSDocs
-7.(optional) unit test
-
-8. report
-
-
+1. handle Data Clumps Links
+   - link is Given {set of Keys}
+   - check the common Fields
+   - create new class only from the new Common Variable
+   - refactor all classes with the same Link
+2. store all types in Data_Clumps_List
+3. handle file path relative instead of absoulot
+4. Command Arguments
+5. bug fix new argument value check
+6. JSDocs
+7. report
 
 where can the field call happened in other files?
+
 1. in class variables
 2. in constructor
 3. in methods parameter
 4. in method body
-
-
 
 current issues:
 handling interfaces if the methode implement interfaces do somthing
