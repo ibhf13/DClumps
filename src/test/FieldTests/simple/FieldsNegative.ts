@@ -20,23 +20,23 @@ export class Fields22 {
 }
 
 class Fields33 {
-  fieldsX = 10;
+  fieldZ = 10;
   fieldsStringFieldsYInstance: FieldsStringFieldsY;
 
   constructor(
-    fieldsX: number,
+    fieldZ: number,
     fieldsStringFieldsYInstance: FieldsStringFieldsY
   ) {
-    this.fieldsX = fieldsX;
+    this.fieldZ = fieldZ;
     this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
   }
   // constructor() {
-  //   this.fieldsX = fieldsX;
+  //   this.fieldZ = fieldZ;
   //   this.fieldsStringFieldsYInstance = fieldsStringFieldsYInstance;
   // }
   normalMethod(): void {
-    let temp = this.fieldsX + 20;
-    this.fieldsStringFieldsYInstance.setFieldsY(10 * this.fieldsX);
+    let temp = this.fieldZ + 20;
+    this.fieldsStringFieldsYInstance.setFieldsY(10 * this.fieldZ);
     this.fieldsStringFieldsYInstance.setFieldsString("new string");
   }
 }

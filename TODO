@@ -1,14 +1,13 @@
 1. handle Data Clumps Links
-   - link is Given {set of Keys}
-   - check the common Fields
-   - create new class only from the new Common Variable
+
+   - check the common Fields and set the number of least common
    - refactor all classes with the same Link
-2. store all types in Data_Clumps_List
-3. handle file path relative instead of absoulot
-4. Command Arguments
-5. bug fix new argument value check
-6. JSDocs
-7. report
+
+2. handle file path relative instead of absoulot
+3. Command Arguments
+4. bug fix new argument value check
+5. JSDocs
+6. report
 
 where can the field call happened in other files?
 

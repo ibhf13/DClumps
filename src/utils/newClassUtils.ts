@@ -2,12 +2,12 @@ import { ClassDeclaration, Project, Scope } from "ts-morph";
 import {
   ParameterInfo,
   NewClassInfo,
-  DataClumpsType,
   DataClumpsList,
-  SmellyMethods,
   SmellyFields,
+  SmellyMethods,
 } from "./Interfaces";
 import { existsSync } from "fs";
+import { getSmellyType } from "../extractors/UserInput";
 
 export function generateUniqueFileName(
   baseName: string,
@@ -36,56 +36,28 @@ export function initializeNewClass(
 }
 
 export function generateClassVariables(
-  smellyGroup: DataClumpsType,
+  parameters: ParameterInfo[],
   newClassDeclaration: ClassDeclaration
 ) {
-  if ("methodInfo" in smellyGroup) {
-    // This is a SmellyMethods instance
-    smellyGroup.methodInfo.parameters.forEach((param: ParameterInfo) => {
-      newClassDeclaration.addProperty({
-        name: param.name,
-        type: param.type,
-        scope: Scope.Private,
-      });
+  parameters.forEach((param: ParameterInfo) => {
+    newClassDeclaration.addProperty({
+      name: param.name,
+      type: param.type,
+      scope: Scope.Private,
     });
-  } else if ("fieldInfo" in smellyGroup) {
-    // This is a SmellyFields instance
-    smellyGroup.fieldInfo.forEach((param: ParameterInfo) => {
-      newClassDeclaration.addProperty({
-        name: param.name,
-        type: param.type,
-        initializer: param.value ? `${param.value}` : "undefined",
-        scope: Scope.Private,
-      });
-    });
-  }
+  });
 }
 
 export function generateConstructor(
-  smellyGroup: DataClumpsType,
+  parameters: ParameterInfo[],
   newClassDeclaration: ClassDeclaration
 ) {
   const constructorDeclaration = newClassDeclaration.addConstructor();
-
-  let parameters: ParameterInfo[];
-  if ("methodInfo" in smellyGroup) {
-    // This is a SmellyMethods instance
-    parameters = smellyGroup.methodInfo.parameters;
-  } else if ("fieldInfo" in smellyGroup) {
-    // This is a SmellyFields instance
-    parameters = smellyGroup.fieldInfo;
-  } else {
-    return; // If it's neither SmellyMethods nor SmellyFields, skip this item
-  }
 
   parameters.forEach((param: ParameterInfo, index: number) => {
     constructorDeclaration.addParameter({
       name: param.name,
       type: param.type,
-      initializer:
-        "fieldInfo" in smellyGroup && param.value
-          ? `${param.value}`
-          : undefined,
     });
 
     const statement = `this.${param.name} = ${param.name};`;
@@ -99,20 +71,9 @@ export function generateConstructor(
 }
 
 export function generateGettersAndSetters(
-  smellyGroup: DataClumpsType,
+  parameters: ParameterInfo[],
   newClassDeclaration: ClassDeclaration
 ) {
-  let parameters: ParameterInfo[];
-  if ("methodInfo" in smellyGroup) {
-    // This is a SmellyMethods instance
-    parameters = smellyGroup.methodInfo.parameters;
-  } else if ("fieldInfo" in smellyGroup) {
-    // This is a SmellyFields instance
-    parameters = smellyGroup.fieldInfo;
-  } else {
-    return; // If it's neither SmellyMethods nor SmellyFields, skip this item
-  }
-
   parameters.forEach((param: ParameterInfo) => {
     const capitalizedParamName =
       param.name.charAt(0).toUpperCase() + param.name.slice(1);
@@ -154,21 +115,48 @@ export function removeMetaInfo(
 
 export function filterDataClumpsList(
   dataClumpsList: DataClumpsList[],
-  keyList: string[],
-  type: "smellyMethods" | "smellyFields"
-): DataClumpsType[] {
-  if (type === "smellyMethods") {
-    return dataClumpsList.flatMap((dataClump) =>
-      (dataClump?.smellyMethods).filter((method) =>
-        keyList.includes(method.key)
-      )
-    );
-  } else {
-    return dataClumpsList.flatMap((dataClump) =>
-      (dataClump?.smellyFields).filter((field) => keyList.includes(field.key))
-    );
-  }
+  keyList: string[]
+): (SmellyFields | SmellyMethods)[] {
+  let result: (SmellyFields | SmellyMethods)[] = [];
+
+  dataClumpsList.forEach((dataClump) => {
+    if (dataClump.smellyMethods) {
+      dataClump.smellyMethods.forEach((smellyMethod) => {
+        if (keyList.includes(smellyMethod.key)) {
+          result.push(smellyMethod);
+        }
+      });
+    }
+
+    if (dataClump.smellyFields) {
+      dataClump.smellyFields.forEach((smellyField) => {
+        if (keyList.includes(smellyField.key)) {
+          result.push(smellyField);
+        }
+      });
+    }
+  });
+
+  return result;
 }
+
+// export function xxx(
+//   dataClumpsList: DataClumpsList[],
+//   keyList: string[],
+//   type: "smellyMethods" | "smellyFields"
+// ): DataClumpsType[] {
+//   if (type === "smellyMethods") {
+//     return dataClumpsList.flatMap((dataClump) =>
+//       (dataClump?.smellyMethods).filter((method) =>
+//         keyList.includes(method.key)
+//       )
+//     );
+//   } else {
+//     return dataClumpsList.flatMap((dataClump) =>
+//       (dataClump?.smellyFields).filter((field) => keyList.includes(field.key))
+//     );
+//   }
+// }
 
 export function filterBySmellyKeys(
   dataClumpsList: DataClumpsList[],

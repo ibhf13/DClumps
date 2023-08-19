@@ -1,14 +1,11 @@
 import { Project } from "ts-morph";
-import { analyzeProjectFiles } from "./DetectorSmellyMethods";
+// import { analyzeProjectFiles } from "./DetectorSmellyMethods";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
 import { DetectSmellyFields } from "./DetectorSmellyFields";
-import {
-  handleUserInputSmellyMethods,
-  handleUserInputSmellyFields,
-} from "./UserInput";
+import { handleUserInputSmellyFields } from "./UserInput";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
   try {
@@ -64,7 +61,7 @@ async function main() {
   let codeAnalyzerProject = new Project();
   let codeAnalyzerProject2 = new Project();
 
-  const MIN_MATCHES = 3;
+  const MIN_MATCHES = 2;
   const toAnalyzeProjectFolder: string = "./src/**/*.ts";
   const outputPath = "./src/output/extractedClasses/";
   let excludedFolders = ["node_modules"];
@@ -110,7 +107,7 @@ async function main() {
   );
 
   console.log(
-    `found ${dataClumpsListWithFields[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
+    `found ${dataClumpsListWithFields[0].metaInfo.numberOfDataClumpsGroups} Data Clumps Groups`
   );
 
   writeFileSync(

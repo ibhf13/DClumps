@@ -1,4 +1,4 @@
-export class Mitarbeiter {
+export class Polizist {
   name: string;
   vorname: string;
   alter: number;

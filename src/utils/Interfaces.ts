@@ -63,12 +63,17 @@ export interface SmellyFields {
 
 export interface DataClumpsList {
   metaInfo?: {
-    numberOfSmellyFieldGroups: number;
-    totalNumberOfDataClumps: number;
+    numberOfDataClumpsGroups: number;
+    totalNumberOfSmellyFields: number;
+    totalNumberOfSmellyMethods: number;
   };
   smellyMethods?: SmellyMethods[];
   smellyFunctions?: SmellyFunction[];
   smellyFields?: SmellyFields[];
 }
 
-export type DataClumpsType = SmellyMethods | SmellyFields;
+export enum SmellyTypes {
+  smellyMethods = "smellyMethods",
+  smellyFunctions = "smellyFunctions",
+  smellyFields = "smellyFields",
+}

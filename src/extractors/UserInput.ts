@@ -4,16 +4,13 @@ import {
 } from "./NewClassSmellyMethods";
 import {
   DataClumpsList,
-  DataClumpsType,
   SmellyFields,
   SmellyMethods,
+  SmellyTypes,
 } from "../utils/Interfaces";
 import * as readline from "readline";
 import { filterDataClumpsList, removeMetaInfo } from "../utils/newClassUtils";
-import {
-  createNewClassesFromKeyListForSmellyFields,
-  createNewClassesUsingAnchorKeyForSmellyFields,
-} from "./NewClassSmellyFields";
+import { createNewClassesFromKeyListForSmellyFields } from "./NewClassSmellyFields";
 
 async function readlineAsync(prompt: string): Promise<string> {
   const rl = readline.createInterface({
@@ -35,7 +32,7 @@ async function askAnchorDataClump(
     const answer = await readlineAsync("What is the anchor data clump? ");
     if (
       isValidPositiveNumber(answer) &&
-      keyExistsInDataClumpsList(dataClumpsList, answer, "smellyFields")
+      keyExistsInDataClumpsList(dataClumpsList, answer)
     ) {
       return answer;
     }
@@ -48,8 +45,7 @@ async function askAnchorDataClump(
 
 async function askDataClumpsToRefactor(
   dataClumpsList: DataClumpsList[],
-  anchorDataClump: string,
-  type: "smellyMethods" | "smellyFields"
+  anchorDataClump: string
 ): Promise<string[]> {
   let validAnswers: string[] = [];
 
@@ -62,8 +58,8 @@ async function askDataClumpsToRefactor(
     }
     if (
       isValidPositiveNumber(answer) &&
-      keyExistsInDataClumpsList(dataClumpsList, answer, type) &&
-      keysInSameGroup(dataClumpsList, anchorDataClump, [answer], type)
+      keyExistsInDataClumpsList(dataClumpsList, answer) &&
+      keysInSameGroup(dataClumpsList, anchorDataClump, [answer])
     ) {
       if (validAnswers.includes(answer)) {
         console.log();
@@ -91,47 +87,66 @@ function isValidPositiveNumber(num: string): boolean {
 
 function keyExistsInDataClumpsList(
   dataClumpsList: DataClumpsList[],
-  key: string,
-  type: "smellyMethods" | "smellyFields"
+  key: string
 ): boolean {
-  if (type === "smellyMethods") {
-    return dataClumpsList.some((dataClumps) =>
-      dataClumps.smellyMethods.some((smellyMethod) => smellyMethod.key === key)
-    );
-  } else if (type === "smellyFields") {
-    return dataClumpsList.some((dataClumps) =>
-      dataClumps.smellyFields.some((smellyField) => smellyField.key === key)
-    );
+  let type = getSmellyType(dataClumpsList, key);
+  for (const dataClump of dataClumpsList) {
+    if (type === "smellyMethods") {
+      if (dataClump.smellyMethods) {
+        const foundMethod = dataClump.smellyMethods.find(
+          (method) => method.key === key
+        );
+        if (foundMethod) return true;
+      }
+    } else if (type === "smellyFields") {
+      if (dataClump.smellyFields) {
+        const foundField = dataClump.smellyFields.find(
+          (field) => field.key === key
+        );
+        if (foundField) return true;
+      }
+    }
   }
+  return false;
 }
-
 function keysInSameGroup(
   dataClumpsList: DataClumpsList[],
   anchor: string,
-  refactoredKeyList: string[],
-  type: "smellyMethods" | "smellyFields"
+  refactoredKeyList: string[]
 ): boolean {
-  if (type === "smellyMethods") {
-    return dataClumpsList.some((dataClumps) => {
-      const keysInCurrentClump = new Set(
-        dataClumps.smellyMethods.map((method) => method.key)
-      );
-      return (
-        keysInCurrentClump.has(anchor) &&
-        refactoredKeyList.every((k) => keysInCurrentClump.has(k))
-      );
-    });
-  } else if (type === "smellyFields") {
-    return dataClumpsList.some((dataClumps) => {
-      const keysInCurrentClump = new Set(
-        dataClumps.smellyFields.map((field) => field.key)
-      );
-      return (
-        keysInCurrentClump.has(anchor) &&
-        refactoredKeyList.every((k) => keysInCurrentClump.has(k))
-      );
-    });
+  let type = getSmellyType(dataClumpsList, refactoredKeyList[0]);
+  for (const dataClump of dataClumpsList) {
+    if (type === "smellyMethods") {
+      if (dataClump.smellyMethods) {
+        const foundAnchor = dataClump.smellyMethods.find(
+          (method) => method.key === anchor
+        );
+        if (foundAnchor) {
+          const foundRefactoredKeys = dataClump.smellyMethods.filter((method) =>
+            refactoredKeyList.includes(method.key)
+          );
+          if (foundRefactoredKeys.length === refactoredKeyList.length) {
+            return true;
+          }
+        }
+      }
+    } else if (type === "smellyFields") {
+      if (dataClump.smellyFields) {
+        const foundAnchor = dataClump.smellyFields.find(
+          (field) => field.key === anchor
+        );
+        if (foundAnchor) {
+          const foundRefactoredKeys = dataClump.smellyFields.filter((field) =>
+            refactoredKeyList.includes(field.key)
+          );
+          if (foundRefactoredKeys.length === refactoredKeyList.length) {
+            return true;
+          }
+        }
+      }
+    }
   }
+  return false;
 }
 
 function summarizeKeys(
@@ -146,83 +161,96 @@ function summarizeKeys(
   return refactoredKeys;
 }
 
-async function wantsOptimumSolution(): Promise<boolean> {
-  while (true) {
-    const answer = await readlineAsync(
-      "Do you want the optimum solution? (y/n): "
-    );
-    if (answer.toLowerCase() === "y") {
-      return true;
-    } else if (answer.toLowerCase() === "n") {
-      return false;
-    }
-    console.log("Invalid input. Please answer with 'y' or 'n'.");
-  }
-}
-
 export function getDataClumpsTypeWithKey(
   dataClumpsList: DataClumpsList[],
-  key: string,
-  type: "smellyMethods" | "smellyFields"
-): DataClumpsType {
-  if (type === "smellyMethods") {
-    const foundMethods = dataClumpsList
-      .flatMap((data) => data.smellyMethods || [])
-      .find((smellyMethod) => smellyMethod.key === key);
-    return foundMethods || null;
-  } else if (type === "smellyFields") {
-    const foundFields = dataClumpsList
-      .flatMap((data) => data.smellyFields || [])
-      .find((smellyField) => smellyField.key === key);
-    return foundFields || null;
-  }
-}
-
-export async function handleUserInputSmellyMethods(
-  dataClumpsList: DataClumpsList[],
-  outputPath: string
-) {
-  const dataClumps = removeMetaInfo(dataClumpsList);
-
-  const anchorDataClump = await askAnchorDataClump(dataClumps);
-
-  const refactoredKeys = await askDataClumpsToRefactor(
-    dataClumps,
-    anchorDataClump,
-    "smellyMethods"
-  );
-
-  const allInSameGroup = keysInSameGroup(
-    dataClumps,
-    anchorDataClump,
-    refactoredKeys,
-    "smellyMethods"
-  );
-
-  const useOptimum: boolean = await wantsOptimumSolution();
-
-  if (allInSameGroup) {
-    const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
-    const userChoiceGroup = filterDataClumpsList(
-      dataClumps,
-      allKeys,
-      "smellyMethods"
-    ) as SmellyMethods[];
-
-    if (useOptimum) {
-      createNewClassesFromKeyList(userChoiceGroup, outputPath);
-    } else {
-      createNewClassesUsingAnchorKeyForSmellyMethods(
-        dataClumps,
-        outputPath,
-        allKeys[0],
-        userChoiceGroup
-      );
+  key: string
+): SmellyFields | SmellyMethods {
+  let type = getSmellyType(dataClumpsList, key);
+  for (const dataClump of dataClumpsList) {
+    if (type === "smellyMethods") {
+      if (dataClump.smellyMethods) {
+        const foundMethod = dataClump.smellyMethods.find(
+          (method) => method.key === key
+        );
+        if (foundMethod) return foundMethod;
+      }
+    } else if (type === "smellyFields") {
+      if (dataClump.smellyFields) {
+        const foundField = dataClump.smellyFields.find(
+          (field) => field.key === key
+        );
+        if (foundField) return foundField;
+      }
     }
-  } else {
-    console.log("The keys are not in the same group");
   }
+  throw new Error("Key not found in Data Clumps List");
 }
+
+export function getSmellyType(
+  dataClumpsList: DataClumpsList[],
+  key: string
+): "smellyMethods" | "smellyFields" {
+  for (const dataClump of dataClumpsList) {
+    if (dataClump.smellyMethods) {
+      const foundMethod = dataClump.smellyMethods.find(
+        (method) => method.key === key
+      );
+      if (foundMethod) return "smellyMethods";
+    }
+    if (dataClump.smellyFields) {
+      const foundField = dataClump.smellyFields.find(
+        (field) => field.key === key
+      );
+      if (foundField) return "smellyFields";
+    }
+  }
+  throw new Error("Key not found in Data Clumps List");
+}
+
+// export async function handleUserInputSmellyMethods(
+//   dataClumpsList: DataClumpsList[],
+//   outputPath: string
+// ) {
+//   const dataClumps = removeMetaInfo(dataClumpsList);
+
+//   const anchorDataClump = await askAnchorDataClump(dataClumps);
+
+//   const refactoredKeys = await askDataClumpsToRefactor(
+//     dataClumps,
+//     anchorDataClump,
+//     "smellyMethods"
+//   );
+
+//   const allInSameGroup = keysInSameGroup(
+//     dataClumps,
+//     anchorDataClump,
+//     refactoredKeys,
+//     "smellyMethods"
+//   );
+
+//   const useOptimum: boolean = await wantsOptimumSolution();
+
+//   if (allInSameGroup) {
+//     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
+//     const userChoiceGroup = filterDataClumpsList(
+//       dataClumps,
+//       allKeys
+//     ) as SmellyMethods[];
+
+//     if (useOptimum) {
+//       createNewClassesFromKeyList(userChoiceGroup, outputPath);
+//     } else {
+//       createNewClassesUsingAnchorKeyForSmellyMethods(
+//         dataClumps,
+//         outputPath,
+//         allKeys[0],
+//         userChoiceGroup
+//       );
+//     }
+//   } else {
+//     console.log("The keys are not in the same group");
+//   }
+// }
 
 export async function handleUserInputSmellyFields(
   dataClumpsList: DataClumpsList[],
@@ -234,37 +262,19 @@ export async function handleUserInputSmellyFields(
 
   const refactoredKeys = await askDataClumpsToRefactor(
     dataClumps,
-    anchorDataClump,
-    "smellyFields"
+    anchorDataClump
   );
 
   const allInSameGroup = keysInSameGroup(
     dataClumps,
     anchorDataClump,
-    refactoredKeys,
-    "smellyFields"
+    refactoredKeys
   );
-
-  const useOptimum: boolean = await wantsOptimumSolution();
 
   if (!allInSameGroup) {
     console.log("The keys are not in the same group");
   } else {
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
-    const userChoiceGroup = filterDataClumpsList(
-      dataClumps,
-      allKeys,
-      "smellyFields"
-    ) as SmellyFields[];
-    if (useOptimum) {
-      createNewClassesFromKeyListForSmellyFields(userChoiceGroup, outputPath);
-    } else {
-      createNewClassesUsingAnchorKeyForSmellyFields(
-        dataClumps,
-        outputPath,
-        allKeys[0],
-        userChoiceGroup
-      );
-    }
+    createNewClassesFromKeyListForSmellyFields(dataClumps, outputPath, allKeys);
   }
 }
