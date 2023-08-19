@@ -1,15 +1,10 @@
 import {
-  createNewClassesFromKeyList,
-  createNewClassesUsingAnchorKeyForSmellyMethods,
-} from "./NewClassSmellyMethods";
-import {
   DataClumpsList,
   SmellyFields,
   SmellyMethods,
-  SmellyTypes,
 } from "../utils/Interfaces";
 import * as readline from "readline";
-import { filterDataClumpsList, removeMetaInfo } from "../utils/newClassUtils";
+import { removeMetaInfo } from "../utils/newClassUtils";
 import {
   createNewClassesFromKeyListForSmellyFields,
   getLeastCommonVariableSet,
@@ -210,51 +205,6 @@ export function getSmellyType(
   throw new Error("Key not found in Data Clumps List");
 }
 
-// export async function handleUserInputSmellyMethods(
-//   dataClumpsList: DataClumpsList[],
-//   outputPath: string
-// ) {
-//   const dataClumps = removeMetaInfo(dataClumpsList);
-
-//   const anchorDataClump = await askAnchorDataClump(dataClumps);
-
-//   const refactoredKeys = await askDataClumpsToRefactor(
-//     dataClumps,
-//     anchorDataClump,
-//     "smellyMethods"
-//   );
-
-//   const allInSameGroup = keysInSameGroup(
-//     dataClumps,
-//     anchorDataClump,
-//     refactoredKeys,
-//     "smellyMethods"
-//   );
-
-//   const useOptimum: boolean = await wantsOptimumSolution();
-
-//   if (allInSameGroup) {
-//     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
-//     const userChoiceGroup = filterDataClumpsList(
-//       dataClumps,
-//       allKeys
-//     ) as SmellyMethods[];
-
-//     if (useOptimum) {
-//       createNewClassesFromKeyList(userChoiceGroup, outputPath);
-//     } else {
-//       createNewClassesUsingAnchorKeyForSmellyMethods(
-//         dataClumps,
-//         outputPath,
-//         allKeys[0],
-//         userChoiceGroup
-//       );
-//     }
-//   } else {
-//     console.log("The keys are not in the same group");
-//   }
-// }
-
 export async function handleUserInputSmellyFields(
   dataClumpsList: DataClumpsList[],
   outputPath: string,
@@ -281,14 +231,14 @@ export async function handleUserInputSmellyFields(
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
     const leastParameterFieldGroup = getLeastCommonVariableSet(
       dataClumps,
-      allKeys,
-      minLink
+      allKeys
     );
     if (leastParameterFieldGroup.length >= minLink) {
       createNewClassesFromKeyListForSmellyFields(
+        dataClumps,
+        allKeys,
         leastParameterFieldGroup,
-        outputPath,
-        allKeys
+        outputPath
       );
     } else {
       console.log("-----------------------");

@@ -18,27 +18,15 @@ import {
 import { refactorSmellyFields } from "./RefactoringSmellyFields";
 import { toCamelCase } from "../utils/RefactorUtils";
 import { getSmellyType } from "./UserInput";
+import { refactorSmellyMethods } from "./RefactoringSmellyMethods";
 
 const project = new Project();
-// export function createNewClassesUsingAnchorKeyForSmellyFields(
-//   dataClumpsList: DataClumpsList[],
-//   outputPath: string,
-//   key: string,
-//   userChoiceGroup: SmellyFields[]
-// ) {
-//   const anchorSmellyMethod = getDataClumpsTypeWithKey(
-//     dataClumpsList,
-//     key
-//   ) as SmellyFields;
-//   createNewClassUsingAnchorKey(anchorSmellyMethod, userChoiceGroup, outputPath);
-
-//   project.saveSync();
-// }
 
 export function createNewClassesFromKeyListForSmellyFields(
+  dataClumps: DataClumpsList[],
+  keys: string[],
   leastParameterFieldGroup: ParameterInfo[],
-  outputPath: string,
-  keys: string[]
+  outputPath: string
 ) {
   let newClassName = getNewClassNameFromFieldGroup(leastParameterFieldGroup);
   const fileName = generateUniqueFileName(newClassName, outputPath);
@@ -57,85 +45,29 @@ export function createNewClassesFromKeyListForSmellyFields(
     outputPath
   );
   project.saveSync();
-  //const userChoiceGroup = filterDataClumpsList(dataClumps, keys);
-
-  //refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
-
   console.log(
     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
   );
+  const typeOfDataClumps = getSmellyType(dataClumps, keys[0]);
+
+  if (typeOfDataClumps === "smellyMethods") {
+    let smellyMethodsGroup = filterDataClumpsList(
+      dataClumps,
+      keys
+    ) as SmellyMethods[];
+    refactorSmellyMethods(newClassInfo, smellyMethodsGroup, project);
+  } else if (typeOfDataClumps === "smellyFields") {
+    let smellyFieldsGroup = filterDataClumpsList(
+      dataClumps,
+      keys
+    ) as SmellyFields[];
+    refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
+  }
 }
-
-// function createNewClassUsingAnchorKey(
-//   anchorFieldsClass: SmellyFields,
-//   smellyFieldsGroup: SmellyFields[],
-//   outputPath: string
-// ) {
-//   let newClassName = getNewClassNameFromFieldGroup(anchorFieldsClass.fieldInfo);
-//   const fileName = generateUniqueFileName(
-//     anchorFieldsClass.classInfo.className + "_" + newClassName,
-//     outputPath
-//   );
-
-//   const newClassDeclaration = createAndGetNewClass(
-//     newClassName,
-//     fileName,
-//     anchorFieldsClass.fieldInfo,
-//     outputPath
-//   );
-
-//   const newClassInfo = exportNewFileData(
-//     newClassDeclaration,
-//     fileName,
-//     anchorFieldsClass.fieldInfo,
-//     outputPath
-//   );
-//   project.saveSync();
-
-//   refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
-
-//   console.log(
-//     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
-//   );
-// }
-
-// function createNewClassUsingOptimum(
-//   smellyFieldsGroup: DataClumpsList[],
-//   outputPath: string,
-//   keys: string[]
-// ) {
-//   const userChoiceGroup = filterDataClumpsList(dataClumps, allKeys);
-
-//   const leastParameterFieldGroup = getLeastCommonVariableSet(smellyFieldsGroup);
-//   let newClassName = getNewClassNameFromFieldGroup(leastParameterFieldGroup);
-//   const fileName = generateUniqueFileName(newClassName, outputPath);
-
-//   const newClassDeclaration = createAndGetNewClass(
-//     newClassName,
-//     fileName,
-//     leastParameterFieldGroup,
-//     outputPath
-//   );
-
-//   const newClassInfo = exportNewFileData(
-//     newClassDeclaration,
-//     fileName,
-//     leastParameterFieldGroup,
-//     outputPath
-//   );
-//   project.saveSync();
-
-//   refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
-
-//   console.log(
-//     `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
-//   );
-// }
 
 export function getLeastCommonVariableSet(
   dataClumps: DataClumpsList[],
-  keys: string[],
-  minDataClumps: number
+  keys: string[]
 ): ParameterInfo[] {
   let allVariable;
   let type = getSmellyType(dataClumps, keys[0]);
