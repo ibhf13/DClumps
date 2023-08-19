@@ -61,7 +61,7 @@ async function main() {
   let codeAnalyzerProject = new Project();
   let codeAnalyzerProject2 = new Project();
 
-  const MIN_MATCHES = 2;
+  const MIN_MATCHES = 3;
   const toAnalyzeProjectFolder: string = "./src/**/*.ts";
   const outputPath = "./src/output/extractedClasses/";
   let excludedFolders = ["node_modules"];
@@ -115,7 +115,11 @@ async function main() {
     JSON.stringify(dataClumpsListWithFields, null, 2)
   );
   console.log("Create new Classes for Smelly Fields");
-  handleUserInputSmellyFields(dataClumpsListWithFields, outputPath);
+  handleUserInputSmellyFields(
+    dataClumpsListWithFields,
+    outputPath,
+    MIN_MATCHES
+  );
 }
 
 // Run the main function

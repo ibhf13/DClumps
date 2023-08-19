@@ -36,11 +36,10 @@ const project = new Project();
 // }
 
 export function createNewClassesFromKeyListForSmellyFields(
-  dataClumps: DataClumpsList[],
+  leastParameterFieldGroup: ParameterInfo[],
   outputPath: string,
   keys: string[]
 ) {
-  const leastParameterFieldGroup = getLeastCommonVariableSet(dataClumps, keys);
   let newClassName = getNewClassNameFromFieldGroup(leastParameterFieldGroup);
   const fileName = generateUniqueFileName(newClassName, outputPath);
 
@@ -58,7 +57,7 @@ export function createNewClassesFromKeyListForSmellyFields(
     outputPath
   );
   project.saveSync();
-  const userChoiceGroup = filterDataClumpsList(dataClumps, keys);
+  //const userChoiceGroup = filterDataClumpsList(dataClumps, keys);
 
   //refactorSmellyFields(newClassInfo, smellyFieldsGroup, project);
 
@@ -133,9 +132,10 @@ export function createNewClassesFromKeyListForSmellyFields(
 //   );
 // }
 
-function getLeastCommonVariableSet(
+export function getLeastCommonVariableSet(
   dataClumps: DataClumpsList[],
-  keys: string[]
+  keys: string[],
+  minDataClumps: number
 ): ParameterInfo[] {
   let allVariable;
   let type = getSmellyType(dataClumps, keys[0]);
@@ -149,7 +149,6 @@ function getLeastCommonVariableSet(
 
   if (type === "smellyFields") {
     let userChoice = filterDataClumpsList(dataClumps, keys) as SmellyFields[];
-    console.log("\n\tuserChoice  ", userChoice);
     allVariable = userChoice!.map((smellyField) => smellyField.fieldInfo);
   }
 

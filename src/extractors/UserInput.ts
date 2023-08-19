@@ -10,7 +10,10 @@ import {
 } from "../utils/Interfaces";
 import * as readline from "readline";
 import { filterDataClumpsList, removeMetaInfo } from "../utils/newClassUtils";
-import { createNewClassesFromKeyListForSmellyFields } from "./NewClassSmellyFields";
+import {
+  createNewClassesFromKeyListForSmellyFields,
+  getLeastCommonVariableSet,
+} from "./NewClassSmellyFields";
 
 async function readlineAsync(prompt: string): Promise<string> {
   const rl = readline.createInterface({
@@ -51,9 +54,9 @@ async function askDataClumpsToRefactor(
 
   while (true) {
     const answer = await readlineAsync(
-      "Type 'end' to stop \nWhat Data clumps do you want to refactor? "
+      "Type 's' to stop \nWhat Data clumps do you want to refactor? "
     );
-    if (answer.toLowerCase() === "end") {
+    if (answer.toLowerCase() === "s") {
       break;
     }
     if (
@@ -254,7 +257,8 @@ export function getSmellyType(
 
 export async function handleUserInputSmellyFields(
   dataClumpsList: DataClumpsList[],
-  outputPath: string
+  outputPath: string,
+  minLink: number
 ) {
   const dataClumps = removeMetaInfo(dataClumpsList);
 
@@ -275,6 +279,25 @@ export async function handleUserInputSmellyFields(
     console.log("The keys are not in the same group");
   } else {
     const allKeys = summarizeKeys(refactoredKeys, anchorDataClump);
-    createNewClassesFromKeyListForSmellyFields(dataClumps, outputPath, allKeys);
+    const leastParameterFieldGroup = getLeastCommonVariableSet(
+      dataClumps,
+      allKeys,
+      minLink
+    );
+    if (leastParameterFieldGroup.length >= minLink) {
+      createNewClassesFromKeyListForSmellyFields(
+        leastParameterFieldGroup,
+        outputPath,
+        allKeys
+      );
+    } else {
+      console.log("-----------------------");
+      console.log(
+        "Not enough Data Clumps to create a new class.\n please choose another link"
+      );
+      console.log("-----------------------\n");
+
+      handleUserInputSmellyFields(dataClumpsList, outputPath, minLink);
+    }
   }
 }
