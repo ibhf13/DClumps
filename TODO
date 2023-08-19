@@ -1,13 +1,8 @@
-1. handle Data Clumps Links
-
-   - check the common Fields and set the number of least common
-   - refactor all classes with the same Link
-
-2. handle file path relative instead of absoulot
-3. Command Arguments
-4. bug fix new argument value check
-5. JSDocs
-6. report
+1. handle file path relative instead of absoulot
+2. Command Arguments
+3. bug fix new argument value check
+4. JSDocs
+5. report
 
 where can the field call happened in other files?
 

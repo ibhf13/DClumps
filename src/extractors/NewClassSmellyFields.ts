@@ -45,9 +45,11 @@ export function createNewClassesFromKeyListForSmellyFields(
     outputPath
   );
   project.saveSync();
+  console.log("--------------------------");
   console.log(
-    `Created new class at ${newClassInfo.filepath} with name ${newClassInfo.className}`
+    `Created new class at ${newClassInfo.filepath} \nThe class name: ${newClassInfo.className}`
   );
+  console.log("--------------------------");
   const typeOfDataClumps = getSmellyType(dataClumps, keys[0]);
 
   if (typeOfDataClumps === "smellyMethods") {

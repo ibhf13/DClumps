@@ -43,6 +43,13 @@ function refactorSelectedMethod(
   const sourceFile = project.addSourceFileAtPath(
     refactoredMethod.classInfo.filepath
   );
+
+  console.log("--------------------------");
+  console.log("Start Refactoring");
+  console.log("Class Name: ", refactoredMethod.classInfo.className);
+  console.log("At: ", refactoredMethod.classInfo.filepath);
+  console.log("--------------------------");
+
   importNewClass(sourceFile, extractedClassInfo);
 
   const classDeclaration = sourceFile.getClass(
@@ -62,14 +69,20 @@ function refactorSelectedMethod(
     refactoredMethod,
     allMethods
   );
-  refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, sourceFile);
+  //refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, sourceFile);
 
   const globalCalls: GlobalCalls[] =
     refactoredMethod.callsInfo.callsList.callsGlob;
-  globalCalls.forEach((call) => {
-    const callFile = project.addSourceFileAtPath(call.classInfo.filepath);
-    refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, callFile);
-  });
+
+  if (globalCalls.length > 0) {
+    console.log("--------------------------");
+    console.log("Start Refactoring Calls in other Class");
+
+    globalCalls.forEach((call) => {
+      const callFile = project.addSourceFileAtPath(call.classInfo.filepath);
+      refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, callFile);
+    });
+  }
 
   project.saveSync();
 }

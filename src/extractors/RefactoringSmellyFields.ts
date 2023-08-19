@@ -51,6 +51,11 @@ function refactorSelectedClassFields(
   const sourceFile = project.addSourceFileAtPath(
     refactoredField.classInfo.filepath
   );
+  console.log("--------------------------");
+  console.log("Start Refactoring");
+  console.log("Class Name: ", refactoredField.classInfo.className);
+  console.log("At: ", refactoredField.classInfo.filepath);
+  console.log("--------------------------");
 
   importNewClass(sourceFile, extractedClassInfo);
 
@@ -73,6 +78,10 @@ function refactorSelectedClassFields(
   });
 
   if (refactoredField.callsInfo.callsList.callsInSame > 0) {
+    console.log("--------------------------");
+    console.log("Start Refactoring Calls in The same Class");
+    console.log("--------------------------");
+
     findInstancesOfRefactoredClass(
       project,
       refactoredField.classInfo.filepath,
@@ -83,16 +92,24 @@ function refactorSelectedClassFields(
 
   const globalCalls: GlobalCalls[] =
     refactoredField.callsInfo.callsList.callsGlob;
-  globalCalls.forEach((call) => {
-    project.saveSync();
-    findInstancesOfRefactoredClass(
-      project,
-      call.classInfo.filepath,
-      refactoredClass,
-      extractedClassInfo
-    );
-  });
-  sourceFile.formatText();
+  if (globalCalls.length > 0) {
+    console.log("--------------------------");
+    console.log("Start Refactoring Calls in other Class");
+
+    globalCalls.forEach((call) => {
+      project.saveSync();
+      console.log("Class Name: ", refactoredClass.getName());
+      console.log("At: ", call.classInfo.filepath);
+      console.log("--------------------------");
+
+      findInstancesOfRefactoredClass(
+        project,
+        call.classInfo.filepath,
+        refactoredClass,
+        extractedClassInfo
+      );
+    });
+  }
   project.saveSync();
 }
 

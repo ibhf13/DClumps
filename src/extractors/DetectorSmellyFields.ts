@@ -63,8 +63,8 @@ export function DetectSmellyFields(
         minDataClumps,
         excludeFolders
       );
+      codeAnalyzerProject.saveSync();
 
-      // const methods = cls.getMethods();
       methods.forEach((method) => {
         // Skip if method is a constructor for speed
         if (method.getName() === "__constructor") return;
