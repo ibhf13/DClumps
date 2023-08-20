@@ -6,9 +6,9 @@ import {
 import * as readline from "readline";
 import { removeMetaInfo } from "../utils/newClassUtils";
 import {
-  createNewClassesFromKeyListForSmellyFields,
+  createNewClassFromKeyList,
   getLeastCommonVariableSet,
-} from "./NewClassSmellyFields";
+} from "./NewClassExtractor";
 
 async function readlineAsync(prompt: string): Promise<string> {
   const rl = readline.createInterface({
@@ -234,7 +234,7 @@ export async function handleUserInputSmellyFields(
       allKeys
     );
     if (leastParameterFieldGroup.length >= minLink) {
-      createNewClassesFromKeyListForSmellyFields(
+      createNewClassFromKeyList(
         dataClumps,
         allKeys,
         leastParameterFieldGroup,

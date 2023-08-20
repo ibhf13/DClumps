@@ -22,7 +22,7 @@ import { refactorSmellyMethods } from "./RefactoringSmellyMethods";
 
 const project = new Project();
 
-export function createNewClassesFromKeyListForSmellyFields(
+export function createNewClassFromKeyList(
   dataClumps: DataClumpsList[],
   keys: string[],
   leastParameterFieldGroup: ParameterInfo[],
