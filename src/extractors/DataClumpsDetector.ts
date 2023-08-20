@@ -96,6 +96,7 @@ export function DetectSmellyFields(
 
   return Data_Clumps_List;
 }
+
 function compareMethodsWithOtherFiles(
   codeAnalyzerProject: Project,
   method: MethodDeclaration,
@@ -204,6 +205,7 @@ function findMatchingParameters(
 
   return matchFound;
 }
+
 function findMatchingFields(
   fields: PropertyDeclaration[],
   otherClass: ClassDeclaration,
@@ -263,6 +265,7 @@ function existInSmellyFieldGroup(filepath: string, className: string): boolean {
       smellyField.classInfo.className === className
   );
 }
+
 function existInSmellyMethodGroup(methodName: string, className: string) {
   return smellyMethodGroup.some(
     (smellyMethod) =>
