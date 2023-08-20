@@ -1,10 +1,9 @@
 import { Project } from "ts-morph";
-// import { analyzeProjectFiles } from "./DetectorSmellyMethods";
 import { writeFileSync } from "fs";
 import * as fs from "fs";
 import * as path from "path";
 import { ClassInfo, DataClumpsList, MethodInfo } from "../utils/Interfaces";
-import { DetectSmellyFields } from "./DetectorSmellyFields";
+import { DetectSmellyFields } from "./DataClumpsDetector";
 import { handleUserInputSmellyFields } from "./UserInput";
 
 function getDataClumpsList(filePath: string): DataClumpsList[] {
@@ -59,48 +58,20 @@ function getDataClumpsList(filePath: string): DataClumpsList[] {
 async function main() {
   //initialize the date collection variables
   let codeAnalyzerProject = new Project();
-  let codeAnalyzerProject2 = new Project();
 
   const MIN_MATCHES = 3;
   const toAnalyzeProjectFolder: string = "./src/**/*.ts";
   const outputPath = "./src/output/extractedClasses/";
   let excludedFolders = ["node_modules"];
-  const withConstructor = true;
+
   console.log(
     `start analyzing  ${toAnalyzeProjectFolder} for dataclumps \n...`
   );
-  // if we want just to use existing dataclumps from json file
-  // const dataclumpsFilepath = "./src/output/jsonDclumps/Data_Clumps_List.json";
-  // const DataClumpsListFromFile = getDataClumpsList(dataclumpsFilepath);
 
-  // // Analyze the project files for data clumps
-  // codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
-  // let dataClumpsList = analyzeProjectFiles(
-  //   codeAnalyzerProject,
-  //   toAnalyzeProjectFolder,
-  //   MIN_MATCHES,
-  //   withConstructor,
-  //   excludedFolders
-  // );
-
-  // writeFileSync(
-  //   "./src/output/jsonDclumps/Data_Clumps_List.json",
-  //   JSON.stringify(dataClumpsList, null, 2)
-  // );
-  // console.log(
-  //   `found ${dataClumpsList[0].metaInfo.numberOfSmellyFieldGroups} Data Clumps Groups`
-  // );
-
-  // console.log("\n\n\nStart refactoring \n...");
-  // console.log("Create new Classes for Smelly Methods");
-  // handleUserInputSmellyMethods(dataClumpsList, outputPath);
-
-  //-------------------------------------------------------------------------
-
-  codeAnalyzerProject2.addSourceFilesAtPaths(toAnalyzeProjectFolder);
+  codeAnalyzerProject.addSourceFilesAtPaths(toAnalyzeProjectFolder);
 
   let dataClumpsListWithFields = DetectSmellyFields(
-    codeAnalyzerProject2,
+    codeAnalyzerProject,
     toAnalyzeProjectFolder,
     MIN_MATCHES,
     excludedFolders

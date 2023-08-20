@@ -1,9 +1,4 @@
-import {
-  ParameterDeclaration,
-  Project,
-  PropertyDeclaration,
-  SyntaxKind,
-} from "ts-morph";
+import { Project, PropertyDeclaration, SyntaxKind } from "ts-morph";
 
 export function projectFileList(
   toAnalyzeProjectFolder: string,
