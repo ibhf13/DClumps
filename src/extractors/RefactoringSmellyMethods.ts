@@ -47,6 +47,7 @@ function refactorSelectedMethod(
   console.log("--------------------------");
   console.log("Start Refactoring");
   console.log("Class Name: ", refactoredMethod.classInfo.className);
+  console.log("Method Name: ", refactoredMethod.methodInfo.methodName);
   console.log("At: ", refactoredMethod.classInfo.filepath);
   console.log("--------------------------");
 
@@ -64,6 +65,10 @@ function refactorSelectedMethod(
   const sharedParameters = updateMethodParameters(extractedClassInfo, method);
   updateMethodBody(extractedClassInfo, method, sharedParameters);
 
+  console.log("--------------------------");
+  console.log("Start Refactoring Calls in The same Class");
+  console.log("--------------------------");
+
   refactorMethodCallsUsingThis(
     extractedClassInfo,
     refactoredMethod,
@@ -79,6 +84,10 @@ function refactorSelectedMethod(
     console.log("Start Refactoring Calls in other Class");
 
     globalCalls.forEach((call) => {
+      console.log("Class Name: ", call.classInfo.className);
+      console.log("At: ", call.classInfo.filepath);
+      console.log("--------------------------");
+
       const callFile = project.addSourceFileAtPath(call.classInfo.filepath);
       refactorMethodInOtherFile(extractedClassInfo, refactoredMethod, callFile);
     });

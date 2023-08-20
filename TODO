@@ -1,8 +1,9 @@
-1. handle file path relative instead of absoulot
-2. Command Arguments
-3. bug fix new argument value check
-4. JSDocs
-5. report
+1. Command Arguments
+2. bug fix new argument value check
+3. JSDocs
+4. report
+
+-- handle file path relative instead of absolute(it cause a problem for refactoring)
 
 where can the field call happened in other files?
 
