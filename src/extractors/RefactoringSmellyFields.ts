@@ -338,17 +338,16 @@ function processBinaryExpressionForFields(
       left.getExpression().getKind() !== SyntaxKind.Identifier
     ) {
       leftText = `this.${instance}.set${toCamelCase(left.getName())}`;
+      if (
+        right instanceof PropertyAccessExpression &&
+        parameterExists(right.getName(), extractedClassInfo.parameters) &&
+        right.getExpression().getKind() !== SyntaxKind.Identifier
+      ) {
+        rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
+      }
+      let result = `${leftText}(${rightText})`;
+      expression.replaceWithText(result);
     }
-    if (
-      right instanceof PropertyAccessExpression &&
-      parameterExists(right.getName(), extractedClassInfo.parameters) &&
-      right.getExpression().getKind() !== SyntaxKind.Identifier
-    ) {
-      rightText = `this.${instance}.get${toCamelCase(right.getName())}()`;
-    }
-    let result = `${leftText}(${rightText})`;
-
-    expression.replaceWithText(result);
   } else {
     if (
       left instanceof PropertyAccessExpression &&
@@ -849,21 +848,21 @@ function processBinaryExpression(
       leftText = `${instanceName}.${extractedClassInstanceName}.set${toCamelCase(
         propertyName
       )}`;
+      if (
+        right instanceof PropertyAccessExpression &&
+        right.getText().includes(instanceName)
+      ) {
+        rightText = processPropertyAccessExpression(
+          right,
+          extractedClassInstanceName,
+          extractedClassInfo,
+          instanceName,
+          usingThis
+        );
+      }
+      let result = `${leftText}(${rightText})`;
+      binaryExpression.replaceWithText(result);
     }
-    if (
-      right instanceof PropertyAccessExpression &&
-      right.getText().includes(instanceName)
-    ) {
-      rightText = processPropertyAccessExpression(
-        right,
-        extractedClassInstanceName,
-        extractedClassInfo,
-        instanceName,
-        usingThis
-      );
-    }
-    let result = `${leftText}(${rightText})`;
-    binaryExpression.replaceWithText(result);
   } else {
     if (
       right instanceof PropertyAccessExpression &&

@@ -142,12 +142,12 @@ function refactorMethodCallsUsingThis(
             extractedClassInfo.className
           }(${newClassArguments.join(", ")})`;
           const updatedArgumentsList = [newArgument, ...otherArguments];
-
-          callExpression.replaceWithText(
-            `this.${
-              refactoredMethod.methodInfo.methodName
-            }(${updatedArgumentsList.join(", ")})`
-          );
+          let result = `this.${
+            refactoredMethod.methodInfo.methodName
+          }(${updatedArgumentsList.join(", ")})`;
+          if (result) {
+            callExpression.replaceWithText(result);
+          }
         }
       }
     });
@@ -237,12 +237,12 @@ function UpdateMethodInOtherFile(
           extractedClassInfo.className
         }(${newClassArguments.join(", ")})`;
         const updatedArgumentsList = [newArgument, ...otherArguments];
-
-        callExpression.replaceWithText(
-          `${calledMethodName.split(".")[0]}.${
-            refactoredMethod.methodInfo.methodName
-          }(${updatedArgumentsList.join(", ")})`
-        );
+        let result = `${calledMethodName.split(".")[0]}.${
+          refactoredMethod.methodInfo.methodName
+        }(${updatedArgumentsList.join(", ")})`;
+        if (result) {
+          callExpression.replaceWithText(result);
+        }
       }
     }
   });
@@ -290,12 +290,16 @@ function processExpression(expression, instance, extractedClassInfo) {
   if (assignment) {
     if (parameterExists(leftText, extractedClassInfo.parameters)) {
       leftText = `${instance}.set${toCamelCase(leftText)}`;
+
+      if (parameterExists(rightText, extractedClassInfo.parameters)) {
+        rightText = `${instance}.get${toCamelCase(rightText)}()`;
+      }
+      return `${leftText}(${rightText})`;
     }
 
-    if (parameterExists(rightText, extractedClassInfo.parameters)) {
-      rightText = `${instance}.get${toCamelCase(rightText)}()`;
-    }
-    return `${leftText}(${rightText})`;
+    return `${leftText} ${expression
+      .getOperatorToken()
+      .getText()} ${rightText}`;
   } else {
     if (parameterExists(leftText, extractedClassInfo.parameters)) {
       leftText = `${instance}.get${toCamelCase(leftText)}()`;
@@ -303,9 +307,6 @@ function processExpression(expression, instance, extractedClassInfo) {
     if (parameterExists(rightText, extractedClassInfo.parameters)) {
       rightText = `${instance}.get${toCamelCase(rightText)}()`;
     }
-    return `${leftText} ${expression
-      .getOperatorToken()
-      .getText()} ${rightText}`;
   }
 }
 
@@ -334,7 +335,9 @@ function updateMethodBody(
       instance,
       extractedClassInfo
     );
-    binaryExpression.replaceWithText(newExpression);
+    if (newExpression) {
+      binaryExpression.replaceWithText(newExpression);
+    }
   });
 
   sharedParameters.forEach((param) => param.remove());
@@ -351,7 +354,9 @@ function updateMethodWithGetter(
     const paramName = identifier.getText();
     if (parameterExists(paramName, extractedClassInfo.parameters)) {
       const getterExpression = `${instance}.get${toCamelCase(paramName)}()`;
-      identifier.replaceWithText(getterExpression);
+      if (getterExpression) {
+        identifier.replaceWithText(getterExpression);
+      }
     }
   });
 }

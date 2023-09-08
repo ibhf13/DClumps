@@ -38,6 +38,7 @@ class ComplexParameter2 {
     paraY: number
   ): void {
     paraX = 1;
+    paraY = 2;
   }
 
   public normalMethod(): void {

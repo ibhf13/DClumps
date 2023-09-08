@@ -19,6 +19,7 @@ class Fields5 {
 
   normalMethod(): void {
     let temp = this.fieldsX + 20;
+    this.fieldsX = 10;
     this.fieldsY = 10 * this.fieldsX;
     this.fieldsString = "new string";
   }
