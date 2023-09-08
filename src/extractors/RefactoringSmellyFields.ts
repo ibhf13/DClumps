@@ -115,22 +115,13 @@ function refactorSelectedClassFields(
 
 function createExtractedClassInstance(
   extractedClassInfo: NewClassInfo,
-  classToRefactor: ClassDeclaration,
-  sharedParameters: string[]
+  classToRefactor: ClassDeclaration
 ) {
   const extractedClassName = getInstanceName(extractedClassInfo);
-  const instanceParams = sharedParameters.map(
-    (param) =>
-      extractedClassInfo.parameters.find((p) => p.name === param)?.value ||
-      "undefined"
-  );
-
-  const instanceParamsStr = instanceParams.join(", ");
 
   classToRefactor.insertProperty(0, {
     name: extractedClassName,
     type: extractedClassInfo.className,
-    initializer: `new ${extractedClassInfo.className}(${instanceParamsStr})`,
   });
 
   return extractedClassName;
@@ -144,8 +135,7 @@ function updateFieldsInClass(
   removeSharedProperties(refactoredClass, sharedParameters);
   const extractedClassInstanceName = createExtractedClassInstance(
     extractedClassInfo,
-    refactoredClass,
-    sharedParameters
+    refactoredClass
   );
   refactorConstructor(
     extractedClassInfo,
